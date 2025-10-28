@@ -18,7 +18,8 @@ export async function registerServiceWorker() {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
             console.log('[SW] New version available');
-            if (confirm('New version available! Reload to update?')) {
+            // eslint-disable-next-line no-restricted-globals
+            if (window.confirm('New version available! Reload to update?')) {
               newWorker.postMessage({ type: 'SKIP_WAITING' });
               window.location.reload();
             }

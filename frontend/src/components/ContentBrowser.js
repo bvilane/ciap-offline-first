@@ -1,9 +1,8 @@
 /**
  * Content Browser Component
- * Displays cached content with search and filtering
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './ContentBrowser.css';
 
@@ -17,11 +16,7 @@ function ContentBrowser({ isOnline }) {
   const [selectedType, setSelectedType] = useState('all');
   const [loadTime, setLoadTime] = useState(null);
 
-  useEffect(() => {
-    fetchContent();
-  }, [selectedType, searchTerm]);
-
-  const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
     const startTime = performance.now();
     setLoading(true);
     setError(null);
@@ -49,7 +44,11 @@ function ContentBrowser({ isOnline }) {
       
       setLoading(false);
     }
-  };
+  }, [selectedType, searchTerm, isOnline]);
+
+  useEffect(() => {
+    fetchContent();
+  }, [fetchContent]);
 
   const handleContentClick = async (contentId) => {
     const startTime = performance.now();

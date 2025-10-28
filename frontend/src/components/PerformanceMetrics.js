@@ -4,7 +4,7 @@
  * Critical for demonstrating testing results
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './PerformanceMetrics.css';
 
@@ -17,11 +17,7 @@ function PerformanceMetrics() {
   const [timeRange, setTimeRange] = useState('24h');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAllMetrics();
-  }, [timeRange]);
-
-  const fetchAllMetrics = async () => {
+  const fetchAllMetrics = useCallback(async () => {
     setLoading(true);
     try {
       const [perfRes, cacheRes, compRes] = await Promise.all([
@@ -38,7 +34,11 @@ function PerformanceMetrics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchAllMetrics();
+  }, [fetchAllMetrics]);
 
   if (loading) {
     return (

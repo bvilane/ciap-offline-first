@@ -1,0 +1,35 @@
+{
+  "name": "ciap-backend",
+  "version": "1.0.0",
+  "description": "Offline-First Community Internet Access Platform - Backend",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --coverage",
+    "seed": "node src/database/seed.js"
+  },
+  "keywords": ["offline-first", "caching", "mesh-networking"],
+  "author": "Bavukile Vilane",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "compression": "^1.7.4",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.11.0",
+    "winston": "^3.11.0",
+    "sqlite3": "^5.1.6",
+    "node-cache": "^5.1.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

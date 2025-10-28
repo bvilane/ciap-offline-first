@@ -1,0 +1,73 @@
+# === Node.js Dependencies ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# === Environment Variables ===
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+
+# === Database Files ===
+backend/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# === Logs ===
+backend/logs/
+frontend/logs/
+logs/
+*.log
+
+# === Uploaded Content (if large files) ===
+backend/content/uploads/*
+!backend/content/uploads/.gitkeep
+
+# === Build Artifacts ===
+frontend/build/
+frontend/dist/
+build/
+dist/
+*.tgz
+
+# === Testing ===
+coverage/
+.nyc_output/
+*.lcov
+
+# === IDE & Editor Files ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# === Operating System ===
+Thumbs.db
+Desktop.ini
+*.tmp
+
+# === Optional Documentation (Not Needed for Submission) ===
+QUICKSTART.md
+IMPLEMENTATION_SUMMARY.md
+
+# === Temporary Files ===
+*.cache
+.temp/
+tmp/
+
+# === React ===
+.eslintcache
+
+# === Production Artifacts ===
+*.zip
+*.tar.gz

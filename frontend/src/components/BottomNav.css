@@ -1,0 +1,23 @@
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  left: 0; right: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: #fff;
+  border-top: 1px solid rgba(0,0,0,.08);
+  z-index: 50;
+}
+.bn-item {
+  padding: 10px 4px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--muted);
+}
+.bn-item.active { color: var(--brand); }
+.bn-label { font-size: 12px; }
+@media (min-width: 900px) {
+  .bottom-nav { display: none; }
+}

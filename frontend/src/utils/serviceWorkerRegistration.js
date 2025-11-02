@@ -1,47 +1,42 @@
-/**
- * Service Worker Registration Utility
- */
+// Minimal CRA-style SW registration that looks for /service-worker.js
+const isLocalhost = Boolean(
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '[::1]' ||
+  window.location.hostname.match(
+    /^127(?:\.(?:25[0-5]|2[0-4]\d|[01]?\d?\d)){3}$/
+  )
+);
 
-export async function registerServiceWorker() {
+export function register() {
   if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/',
-      });
+    const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
+    if (publicUrl.origin !== window.location.origin) return;
 
-      console.log('[SW] Registration successful', registration.scope);
+    window.addEventListener('load', () => {
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
 
-      // Handle updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            console.log('[SW] New version available');
-            // eslint-disable-next-line no-restricted-globals
-            if (window.confirm('New version available! Reload to update?')) {
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-              window.location.reload();
-            }
-          }
-        });
-      });
-
-      return registration;
-    } catch (error) {
-      console.error('[SW] Registration failed:', error);
-      throw error;
-    }
-  } else {
-    console.warn('[SW] Service Worker not supported');
-    throw new Error('Service Worker not supported');
+      if (isLocalhost) {
+        // In localhost we still register; useful for testing caches.
+        registerValidSW(swUrl);
+      } else {
+        registerValidSW(swUrl);
+      }
+    });
   }
 }
 
-export async function unregisterServiceWorker() {
+function registerValidSW(swUrl) {
+  navigator.serviceWorker
+    .register(swUrl)
+    .catch(() => {
+      // silent fail is fine for now; avoid console noise
+    });
+}
+
+export function unregister() {
   if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.ready;
-    await registration.unregister();
-    console.log('[SW] Unregistered');
+    navigator.serviceWorker.ready.then(registration => {
+      registration.unregister();
+    });
   }
 }

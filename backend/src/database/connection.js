@@ -7,10 +7,7 @@ const logger = require('../utils/logger');
 
 class Database {
   constructor() {
-    if (Database.instance) {
-      return Database.instance;
-    }
-    
+    if (Database.instance) return Database.instance;
     this.db = null;
     this.isConnected = false;
     Database.instance = this;
@@ -20,9 +17,7 @@ class Database {
    * Initialize database connection and create tables
    */
   async connect() {
-    if (this.isConnected) {
-      return this.db;
-    }
+    if (this.isConnected) return this.db;
 
     try {
       // Ensure data directory exists
@@ -40,17 +35,17 @@ class Database {
         logger.info('Database connected successfully', { path: config.database.path });
       });
 
-      // Promisify database methods
+      // Promisify methods
       this.db.runAsync = promisify(this.db.run.bind(this.db));
       this.db.getAsync = promisify(this.db.get.bind(this.db));
       this.db.allAsync = promisify(this.db.all.bind(this.db));
 
-      // Enable foreign keys
+      // Pragmas
       await this.db.runAsync('PRAGMA foreign_keys = ON');
-      
+
       // Create tables
       await this.createTables();
-      
+
       this.isConnected = true;
       return this.db;
     } catch (error) {
@@ -61,11 +56,10 @@ class Database {
 
   /**
    * Create database schema
-   * Represents ERD from project proposal
    */
   async createTables() {
     const schemas = [
-      // Users table
+      // Users
       `CREATE TABLE IF NOT EXISTS users (
         user_id TEXT PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
@@ -76,7 +70,7 @@ class Database {
         last_login DATETIME
       )`,
 
-      // Content items table
+      // Content items (existing)
       `CREATE TABLE IF NOT EXISTS content_items (
         content_id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
@@ -91,7 +85,7 @@ class Database {
         FOREIGN KEY (uploaded_by) REFERENCES users(user_id)
       )`,
 
-      // Cache entries table
+      // Cache entries
       `CREATE TABLE IF NOT EXISTS cache_entries (
         cache_id TEXT PRIMARY KEY,
         content_id TEXT NOT NULL,
@@ -103,7 +97,7 @@ class Database {
         FOREIGN KEY (content_id) REFERENCES content_items(content_id)
       )`,
 
-      // Request logs for analytics
+      // Request logs
       `CREATE TABLE IF NOT EXISTS request_logs (
         log_id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT,
@@ -115,7 +109,7 @@ class Database {
         FOREIGN KEY (content_id) REFERENCES content_items(content_id)
       )`,
 
-      // Admin actions for audit trail
+      // Admin actions
       `CREATE TABLE IF NOT EXISTS admin_actions (
         action_id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
@@ -132,82 +126,98 @@ class Database {
         metric_value REAL NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
       )`,
+
+      /* ==== NEW COMMUNITY TABLES ==== */
+
+      // Notices/news
+      `CREATE TABLE IF NOT EXISTS notices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        community TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT,
+        created_at INTEGER DEFAULT (strftime('%s','now')*1000)
+      )`,
+
+      // Jobs
+      `CREATE TABLE IF NOT EXISTS jobs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        community TEXT NOT NULL,
+        title TEXT NOT NULL,
+        summary TEXT,
+        company TEXT,
+        location TEXT,
+        type TEXT,
+        apply_url TEXT,
+        posted_at INTEGER DEFAULT (strftime('%s','now')*1000)
+      )`,
+
+      // Skills/training
+      `CREATE TABLE IF NOT EXISTS skills (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        community TEXT NOT NULL,
+        title TEXT NOT NULL,
+        provider TEXT,
+        summary TEXT,
+        url TEXT,
+        starts_at INTEGER
+      )`,
+
+      // Directory
+      `CREATE TABLE IF NOT EXISTS directory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        community TEXT NOT NULL,
+        name TEXT NOT NULL,
+        category TEXT,
+        phone TEXT,
+        hours TEXT,
+        address TEXT
+      )`
     ];
 
-    // Create indexes for performance
     const indexes = [
       'CREATE INDEX IF NOT EXISTS idx_cache_key ON cache_entries(cache_key)',
       'CREATE INDEX IF NOT EXISTS idx_content_type ON content_items(content_type)',
       'CREATE INDEX IF NOT EXISTS idx_request_timestamp ON request_logs(timestamp)',
       'CREATE INDEX IF NOT EXISTS idx_user_role ON users(role)',
+      'CREATE INDEX IF NOT EXISTS idx_notices_comm ON notices(community, created_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_jobs_comm ON jobs(community, posted_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_skills_comm ON skills(community, starts_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_directory_comm ON directory(community, name)'
     ];
 
     try {
-      for (const schema of schemas) {
-        await this.db.runAsync(schema);
-      }
-      for (const index of indexes) {
-        await this.db.runAsync(index);
-      }
-      logger.info('Database schema created successfully');
+      for (const schema of schemas) await this.db.runAsync(schema);
+      for (const index of indexes) await this.db.runAsync(index);
+      logger.info('Database schema created/verified successfully');
     } catch (error) {
       logger.error('Schema creation failed', { error: error.message });
       throw error;
     }
   }
 
-  /**
-   * Execute a query with parameters
-   */
   async query(sql, params = []) {
-    try {
-      return await this.db.allAsync(sql, params);
-    } catch (error) {
-      logger.error('Query execution failed', { sql, error: error.message });
-      throw error;
-    }
+    try { return await this.db.allAsync(sql, params); }
+    catch (error) { logger.error('Query failed', { sql, error: error.message }); throw error; }
   }
 
-  /**
-   * Execute a single row query
-   */
   async queryOne(sql, params = []) {
-    try {
-      return await this.db.getAsync(sql, params);
-    } catch (error) {
-      logger.error('Query execution failed', { sql, error: error.message });
-      throw error;
-    }
+    try { return await this.db.getAsync(sql, params); }
+    catch (error) { logger.error('QueryOne failed', { sql, error: error.message }); throw error; }
   }
 
-  /**
-   * Execute a write operation
-   */
   async execute(sql, params = []) {
-    try {
-      return await this.db.runAsync(sql, params);
-    } catch (error) {
-      logger.error('Execute failed', { sql, error: error.message });
-      throw error;
-    }
+    try { return await this.db.runAsync(sql, params); }
+    catch (error) { logger.error('Execute failed', { sql, error: error.message }); throw error; }
   }
 
-  /**
-   * Close database connection
-   */
   async close() {
-    if (this.db) {
-      await new Promise((resolve, reject) => {
-        this.db.close((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-      this.isConnected = false;
-      logger.info('Database connection closed');
-    }
+    if (!this.db) return;
+    await new Promise((resolve, reject) => {
+      this.db.close((err) => (err ? reject(err) : resolve()));
+    });
+    this.isConnected = false;
+    logger.info('Database connection closed');
   }
 }
 
-// Export singleton instance
 module.exports = new Database();

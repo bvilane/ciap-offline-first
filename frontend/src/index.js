@@ -1,17 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
-import { registerServiceWorker } from './utils/serviceWorkerRegistration';
+import './index.css';
+import * as serviceWorkerRegistration from './utils/serviceWorkerRegistration';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+root.render(<App />);
 
-// Register service worker for offline functionality
-registerServiceWorker()
-  .then(() => console.log('✅ Service Worker registered'))
-  .catch((error) => console.error('❌ Service Worker registration failed:', error));
+// Enable offline caching only in production
+if (process.env.NODE_ENV === 'production') {
+  serviceWorkerRegistration.register();
+} else {
+  serviceWorkerRegistration.unregister();
+}
+

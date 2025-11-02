@@ -1,167 +1,83 @@
-/**
- * Content Browser Component
- */
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ContentBrowser.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api/v1';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:3001/api/v1';
 
-function ContentBrowser({ isOnline }) {
-  const [content, setContent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+export default function ContentBrowser() {
+  const [items, setItems] = useState([]);
+  const [q, setQ] = useState('');
   const [selectedType, setSelectedType] = useState('all');
-  const [loadTime, setLoadTime] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const fetchContent = useCallback(async () => {
-    const startTime = performance.now();
+  const fetchData = async () => {
     setLoading(true);
-    setError(null);
-
     try {
       const params = {};
       if (selectedType !== 'all') params.type = selectedType;
-      if (searchTerm) params.search = searchTerm;
-
-      const response = await axios.get(`${API_BASE}/content`, { params });
-      
-      const endTime = performance.now();
-      setLoadTime(Math.round(endTime - startTime));
-      
-      setContent(response.data.data || []);
+      if (q.trim()) params.q = q.trim();
+      const { data } = await axios.get(`${API}/content`, { params });
+      setItems(Array.isArray(data) ? data : []);
+    } catch {
+      setItems([]);
+    } finally {
       setLoading(false);
-    } catch (err) {
-      console.error('Error fetching content:', err);
-      
-      if (!isOnline) {
-        setError('Offline mode - Showing cached content only');
-      } else {
-        setError('Failed to load content');
-      }
-      
-      setLoading(false);
-    }
-  }, [selectedType, searchTerm, isOnline]);
-
-  useEffect(() => {
-    fetchContent();
-  }, [fetchContent]);
-
-  const handleContentClick = async (contentId) => {
-    const startTime = performance.now();
-    
-    try {
-      const response = await axios.get(`${API_BASE}/content/${contentId}`);
-      const endTime = performance.now();
-      
-      const itemLoadTime = Math.round(endTime - startTime);
-      
-      alert(`Content loaded in ${itemLoadTime}ms\n${isOnline ? 'From: Server/Cache' : 'From: Local Cache'}`);
-      
-      console.log('Content details:', response.data);
-    } catch (err) {
-      console.error('Error loading content:', err);
     }
   };
 
-  const filteredContent = content;
+  useEffect(() => { fetchData(); }, []); // initial
+
+  const onSearch = (e) => {
+    e.preventDefault();
+    fetchData();
+  };
 
   return (
-    <div className="content-browser">
-      <div className="browser-header">
-        <h2>📚 Educational Content Library</h2>
-        {loadTime !== null && (
-          <div className={`load-time ${isOnline ? 'online' : 'offline'}`}>
-            ⚡ Loaded in {loadTime}ms {isOnline ? '' : '(from cache)'}
+    <section className="browser">
+      <div className="card section">
+        <h2 className="section-title">Content Library</h2>
+        <form className="filters" onSubmit={onSearch}>
+          <input
+            className="input search-input"
+            placeholder="Search content..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          <select
+            className="type-filter"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="all">All types</option>
+            <option value="article">Articles</option>
+            <option value="video">Videos</option>
+            <option value="pdf">Documents</option>
+            <option value="image">Images</option>
+          </select>
+          <button className="btn" type="submit">Apply</button>
+        </form>
+      </div>
+
+      <div className="list">
+        {loading && <div className="card section">Loading…</div>}
+
+        {!loading && items.length === 0 && (
+          <div className="card section empty">
+            No results. Adjust your filters and try again.
           </div>
         )}
-      </div>
 
-      <div className="filters">
-        <input
-          type="text"
-          placeholder="🔍 Search content..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          className="type-filter"
-        >
-          <option value="all">All Types</option>
-          <option value="application/pdf">📄 PDFs</option>
-          <option value="text/html">📝 Articles</option>
-          <option value="image/jpeg">🖼️ Images</option>
-        </select>
-      </div>
-
-      {error && (
-        <div className="error-message">
-          ⚠️ {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="loading">
-          <div className="spinner"></div>
-          <p>Loading content...</p>
-        </div>
-      ) : (
-        <div className="content-grid">
-          {filteredContent.length === 0 ? (
-            <div className="no-content">
-              <p>No content available</p>
-              {!isOnline && <p>Try going online to sync new content</p>}
+        {!loading && items.map((it) => (
+          <div key={it.id || `${it.title}-${it.type}`} className="card section item">
+            <h3>{it.title || 'Untitled'}</h3>
+            <div className="meta">
+              {it.type ? it.type.toUpperCase() : 'UNKNOWN'}
+              {it.size ? ` • ${it.size}` : ''}
+              {it.cached ? ` • Cached` : ''}
             </div>
-          ) : (
-            filteredContent.map((item) => (
-              <div
-                key={item.content_id}
-                className="content-card"
-                onClick={() => handleContentClick(item.content_id)}
-              >
-                <div className="card-icon">
-                  {item.content_type === 'application/pdf' && '📄'}
-                  {item.content_type === 'text/html' && '📝'}
-                  {item.content_type.startsWith('image/') && '🖼️'}
-                </div>
-                <h3>{item.title}</h3>
-                <p className="description">{item.description || 'No description'}</p>
-                <div className="card-meta">
-                  <span className="type">{item.content_type}</span>
-                  <span className="size">
-                    {item.file_size ? `${(item.file_size / 1024).toFixed(1)} KB` : 'N/A'}
-                  </span>
-                </div>
-                <div className="card-footer">
-                  <span className="date">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      <div className="demo-instructions">
-        <h3>🎥 Demo Instructions:</h3>
-        <ol>
-          <li>Browse content while ONLINE - note the load time</li>
-          <li>Turn on Airplane Mode or disconnect WiFi</li>
-          <li>Observe the OFFLINE MODE indicator appears</li>
-          <li>Click any content card - it still works!</li>
-          <li>Check DevTools Network tab - 0ms responses from cache</li>
-        </ol>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
-
-export default ContentBrowser;

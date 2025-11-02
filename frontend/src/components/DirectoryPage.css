@@ -1,0 +1,10 @@
+.directory { display: grid; gap: 16px; }
+.dir-controls { display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .dir-controls { grid-template-columns: 1fr 220px; } }
+
+.dir-list { display: grid; gap: 12px; }
+.dir-item { display: grid; gap: 6px; }
+.dir-primary { display: flex; align-items: baseline; gap: 8px; }
+.dir-name { font-weight: 800; }
+.dir-cat { color: var(--muted); font-size: 12px; }
+.dir-meta { display: grid; gap: 6px; }

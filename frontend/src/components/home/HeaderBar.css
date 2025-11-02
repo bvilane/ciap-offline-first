@@ -1,0 +1,39 @@
+.ciap-header {
+  background: #0b1f34;
+  color: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .ciap-header { grid-template-columns: 1fr; }
+}
+
+.ciap-header__brand { display: flex; gap: 12px; align-items: center; }
+.ciap-logo {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; background:#13314f;
+}
+.ciap-title { font-weight: 700; font-size: 16px; }
+.ciap-subtitle { font-size: 12px; opacity:.9 }
+
+.ciap-header__search { display: flex; justify-content: center; }
+.ciap-search {
+  width: 100%; max-width: 560px;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,.25);
+  padding: 10px 14px; background: rgba(255,255,255,.08); color: #fff;
+}
+.ciap-search::placeholder { color: rgba(255,255,255,.75); }
+
+.ciap-header__actions { display:flex; gap:12px; justify-content:flex-end; align-items:center; }
+.ciap-select {
+  background:#fff; color:#0b1f34; border-radius: 999px; padding:8px 10px; border:none;
+}
+.ciap-nav button {
+  background: transparent; color:#fff; border:none; padding:8px 8px; cursor:pointer;
+  border-radius: 6px;
+}
+.ciap-nav button:hover { background: rgba(255,255,255,.1); }

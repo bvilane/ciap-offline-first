@@ -1,111 +1,96 @@
-/**
- * Main CIAP Application
- */
-
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
-import ContentBrowser from './components/ContentBrowser';
-import AdminDashboard from './components/AdminDashboard';
-import PerformanceMetrics from './components/PerformanceMetrics';
+
+import { COMMUNITY_NAME, ENDPOINTS } from './config/appConfig';
+
 import OfflineIndicator from './components/OfflineIndicator';
-import { registerServiceWorker } from './utils/serviceWorkerRegistration';
+import BottomNav from './components/BottomNav';
+import ContentBrowser from './components/ContentBrowser';
+import PerformanceMetrics from './components/PerformanceMetrics';
+import AdminDashboard from './components/AdminDashboard';
+import DirectoryPage from './components/DirectoryPage';
+import HeaderBar from './components/home/HeaderBar';
+import HeroCarousel from './components/home/HeroCarousel';
+import CategoryRow from './components/home/CategoryRow';
+import ContentGrid from './components/home/ContentGrid';
 
-function App() {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [swRegistration, setSwRegistration] = useState(null);
-  const [cacheStats, setCacheStats] = useState(null);
-
-  // Monitor online/offline status
+export default function App() {
+  const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   useEffect(() => {
-    const handleOnline = () => {
-      console.log('🌐 Connection restored');
-      setIsOnline(true);
-    };
-
-    const handleOffline = () => {
-      console.log('📴 Connection lost - Offline mode');
-      setIsOnline(false);
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
   }, []);
 
-  // Register Service Worker
-  useEffect(() => {
-    registerServiceWorker()
-      .then((registration) => {
-        console.log('✅ Service Worker registered');
-        setSwRegistration(registration);
-      })
-      .catch((error) => {
-        console.error('❌ Service Worker registration failed:', error);
-      });
-  }, []);
+  const [page, setPage] = useState('home'); // home | library | directory | metrics | admin
+  const [community, setCommunity] = useState(process.env.REACT_APP_COMMUNITY || COMMUNITY_NAME);
+  const [query, setQuery] = useState('');
 
-  // Get cache statistics
-  useEffect(() => {
-    if (swRegistration && swRegistration.active) {
-      const messageChannel = new MessageChannel();
-      
-      messageChannel.port1.onmessage = (event) => {
-        if (event.data.size !== undefined) {
-          setCacheStats({
-            size: (event.data.size / (1024 * 1024)).toFixed(2) + ' MB',
-          });
-        }
-      };
-
-      swRegistration.active.postMessage(
-        { type: 'GET_CACHE_SIZE' },
-        [messageChannel.port2]
-      );
-    }
-  }, [swRegistration]);
+  const apiUrl = useMemo(
+    () => process.env.REACT_APP_API_URL || 'http://localhost:3001/api/v1',
+    []
+  );
 
   return (
-    <Router>
-      <div className="App">
-        <header className="App-header">
-          <div className="header-content">
-            <h1>🌐 CIAP - Community Internet Access Platform</h1>
-            <p className="subtitle">Offline-First Content Delivery System</p>
+    <div className="App">
+      <OfflineIndicator online={online} />
+
+      {/* Top brand + search + community picker */}
+      <HeaderBar
+        brandTitle="CIAP – Community Internet Access Platform"
+        subtitle="Offline-First Content Delivery System"
+        community={community}
+        onCommunityChange={setCommunity}
+        query={query}
+        onQueryChange={setQuery}
+        onNavigate={setPage}
+      />
+
+      {page === 'home' && (
+        <>
+          <HeroCarousel />
+          <div className="container">
+            <CategoryRow onSelect={(target) => setPage(target)} />
           </div>
-          
-          <OfflineIndicator isOnline={isOnline} cacheStats={cacheStats} />
-          
-          <nav className="main-nav">
-            <Link to="/" className="nav-link">📚 Browse Content</Link>
-            <Link to="/admin" className="nav-link">⚙️ Admin Dashboard</Link>
-            <Link to="/metrics" className="nav-link">📊 Performance Metrics</Link>
-          </nav>
-        </header>
+          <ContentGrid
+            api={ENDPOINTS}
+            community={community}
+            query={query}
+          />
+          <footer className="container" style={{ marginTop: 12, marginBottom: 24 }}>
+            <div className="card section" style={{ padding: 12 }}>
+              <span className="subtle">
+                API Base: <strong>{apiUrl}</strong> • Community: <strong>{community}</strong>
+              </span>
+            </div>
+          </footer>
+        </>
+      )}
 
-        <main className="App-main">
-          <Routes>
-            <Route path="/" element={<ContentBrowser isOnline={isOnline} />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/metrics" element={<PerformanceMetrics />} />
-          </Routes>
+      {page === 'library' && (
+        <main className="container" style={{ paddingBottom: 56 }}>
+          <ContentBrowser />
         </main>
+      )}
+      {page === 'directory' && (
+        <main className="container" style={{ paddingBottom: 56 }}>
+          <DirectoryPage />
+        </main>
+      )}
+      {page === 'metrics' && (
+        <main className="container" style={{ paddingBottom: 56 }}>
+          <PerformanceMetrics />
+        </main>
+      )}
+      {page === 'admin' && (
+        <main className="container" style={{ paddingBottom: 56 }}>
+          <AdminDashboard />
+        </main>
+      )}
 
-        <footer className="App-footer">
-          <p>
-            🎓 Software Engineering Capstone Project | Bavukile Vilane | ALU
-          </p>
-          <p className="tech-stack">
-            Built with: React, Node.js, Express, Service Workers, SQLite
-          </p>
-        </footer>
-      </div>
-    </Router>
+      <BottomNav active={page} onNavigate={setPage} />
+    </div>
   );
 }
-
-export default App;

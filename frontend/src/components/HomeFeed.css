@@ -1,0 +1,14 @@
+.home-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+.home-main { display: grid; gap: 16px; }
+.home-aside { display: grid; gap: 16px; }
+
+@media (min-width: 1024px) {
+  .home-grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}

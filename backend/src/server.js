@@ -1,18 +1,31 @@
 /**
  * CIAP Backend Server
+ * CommonJS build, aligns with existing project structure.
  */
 
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+
 const config = require('./config');
 const logger = require('./utils/logger');
 const database = require('./database/connection');
+
+// Existing routes you already had
 const contentRoutes = require('./routes/contentRoutes');
 const authRoutes = require('./routes/authRoutes');
 const metricsRoutes = require('./routes/metricsRoutes');
+
+// NEW: MVP community portal routes
+// (Create these files next if you haven't yet: noticesRoutes.js, jobsRoutes.js, skillsRoutes.js, directoryRoutes.js)
+let noticesRoutes, jobsRoutes, skillsRoutes, directoryRoutes;
+try { noticesRoutes = require('./routes/noticesRoutes'); } catch { noticesRoutes = null; }
+try { jobsRoutes = require('./routes/jobsRoutes'); } catch { jobsRoutes = null; }
+try { skillsRoutes = require('./routes/skillsRoutes'); } catch { skillsRoutes = null; }
+try { directoryRoutes = require('./routes/directoryRoutes'); } catch { directoryRoutes = null; }
 
 // Initialize Express app
 const app = express();
@@ -24,58 +37,65 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
-    },
+      imgSrc: ["'self'", 'data:', 'https:']
+    }
   },
-  crossOriginEmbedderPolicy: false,
+  crossOriginEmbedderPolicy: false
 }));
 
-// CORS configuration
+// CORS
 app.use(cors(config.cors));
 
-// Body parsing middleware
+// Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Compression middleware
+// Compression
 app.use(compression());
 
 // Request logging
 app.use(logger.httpLogger);
 
-// Rate limiting
+// Rate limiting (under /api/)
 const limiter = rateLimit({
   windowMs: config.security.rateLimitWindow,
   max: config.security.rateLimitMax,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: false
 });
 app.use('/api/', limiter);
 
-// Health check endpoint
+// Health checks
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: config.server.env,
+    environment: config.server.env
   });
 });
+app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 
-// API Routes
+// ===== API Routes =====
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/metrics', metricsRoutes);
 
-// Serve static content files
-app.use('/content', express.static('./content/uploads'));
+// New MVP routes (mount only if present to avoid boot errors)
+if (noticesRoutes)   app.use('/api/v1/notices', noticesRoutes);
+if (jobsRoutes)      app.use('/api/v1/jobs', jobsRoutes);
+if (skillsRoutes)    app.use('/api/v1/skills', skillsRoutes);
+if (directoryRoutes) app.use('/api/v1/directory', directoryRoutes);
+
+// Static content (uploads)
+app.use('/content', express.static(path.join(__dirname, '../content/uploads')));
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
-    message: `Route ${req.method} ${req.url} not found`,
+    message: `Route ${req.method} ${req.url} not found`
   });
 });
 
@@ -85,24 +105,22 @@ app.use((err, req, res, next) => {
     error: err.message,
     stack: err.stack,
     url: req.url,
-    method: req.method,
+    method: req.method
   });
 
   res.status(err.statusCode || 500).json({
     error: err.name || 'Internal Server Error',
-    message: config.server.env === 'production' 
-      ? 'An error occurred' 
-      : err.message,
+    message: config.server.env === 'production' ? 'An error occurred' : err.message
   });
 });
 
 // Graceful shutdown handler
 const gracefulShutdown = async (signal) => {
   logger.info(`${signal} received, starting graceful shutdown...`);
-  
+
   server.close(async () => {
     logger.info('HTTP server closed');
-    await database.close();
+    try { await database.close(); } catch {}
     process.exit(0);
   });
 
@@ -116,12 +134,12 @@ const gracefulShutdown = async (signal) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Initialize database and start server
+// Bootstrapping
 let server;
 
 async function startServer() {
   try {
-    // Connect to database
+    // Initialize DB connection / migrations
     await database.connect();
     logger.info('Database initialized');
 
@@ -130,20 +148,17 @@ async function startServer() {
       logger.info(`🚀 CIAP Backend Server running`, {
         port: config.server.port,
         environment: config.server.env,
-        nodeVersion: process.version,
+        nodeVersion: process.version
       });
-      
-      logger.info(`📡 API endpoints available at http://localhost:${config.server.port}/api/v1`);
-      logger.info(`❤️  Health check at http://localhost:${config.server.port}/health`);
+      logger.info(`📡 API base: http://localhost:${config.server.port}/api/v1`);
+      logger.info(`❤️  Health:  http://localhost:${config.server.port}/health`);
     });
-
   } catch (error) {
     logger.error('Failed to start server', { error: error.message });
     process.exit(1);
   }
 }
 
-// Start the server
 startServer();
 
-module.exports = app; // For testing
+module.exports = app; // for testing

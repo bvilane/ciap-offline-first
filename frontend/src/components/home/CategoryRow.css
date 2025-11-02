@@ -1,0 +1,21 @@
+.catrow {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 2px 2px;
+}
+.catrow-item {
+  display:flex; align-items:center; gap:8px;
+  background:#fff; border:1px solid var(--border); border-radius:999px;
+  padding:8px 12px; box-shadow: var(--shadow); cursor:pointer;
+}
+.catrow-item .circle {
+  width:30px; height:30px; border-radius:50%; background:#f3f6ff; border:1px solid rgba(0,0,0,.08);
+}
+.catrow-item .label { white-space:nowrap; font-weight:600; }
+.catrow-item .badge {
+  margin-left:6px; font-size:10px; padding:2px 6px; border-radius:999px;
+  background:#ff7c55; color:#fff;
+}

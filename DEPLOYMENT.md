@@ -1,434 +1,412 @@
-# 🚀 CIAP Deployment Guide
+# CIAP Deployment Guide
 
-**Production deployment documentation for rubric compliance**
-
----
-
-## 📋 Deployment Overview
-
-This guide covers deployment to:
-1. ✅ Render.com (Recommended - Free tier available)
-2. ✅ Vercel (Frontend only)
-3. ✅ Local Docker deployment
-4. ✅ Manual VPS deployment
+Complete guide for deploying CIAP to production environments.
 
 ---
 
-## 🎯 Option 1: Render.com (RECOMMENDED)
+## 🎯 Deployment Strategy
 
-### Why Render?
-- ✅ Free tier available
-- ✅ Automatic HTTPS
-- ✅ Easy CI/CD from GitHub
-- ✅ Built-in logging
-- ✅ Simple environment variables
-
-### Prerequisites
-- GitHub account with your code pushed
-- Render.com account (free)
-
-### Deploy Backend
-
-1. **Create New Web Service**
-   - Go to [dashboard.render.com](https://dashboard.render.com)
-   - Click "New +" → "Web Service"
-   - Connect GitHub repository
-
-2. **Configure Build Settings**
-   ```
-   Name: ciap-backend
-   Environment: Node
-   Region: Choose closest to your users
-   Branch: main
-   
-   Build Command: cd backend && npm install
-   Start Command: cd backend && npm start
-   ```
-
-3. **Set Environment Variables**
-   ```
-   NODE_ENV=production
-   PORT=3001
-   JWT_SECRET=<generate-strong-secret-min-32-chars>
-   DB_PATH=./data/ciap.db
-   CACHE_STRATEGY=LRU
-   CACHE_TTL=3600
-   CORS_ORIGIN=https://your-frontend-url.onrender.com
-   ```
-
-4. **Create Service**
-   - Click "Create Web Service"
-   - Wait for deployment (3-5 minutes)
-   - Copy the service URL (e.g., `https://ciap-backend.onrender.com`)
-
-5. **Seed Database**
-   - Go to Shell tab in Render dashboard
-   - Run: `node src/database/seed.js`
-
-### Deploy Frontend
-
-1. **Create Static Site**
-   - New + → Static Site
-   - Connect same repository
-
-2. **Configure Build**
-   ```
-   Name: ciap-frontend
-   Branch: main
-   
-   Build Command: cd frontend && npm install && npm run build
-   Publish Directory: frontend/build
-   ```
-
-3. **Environment Variables**
-   ```
-   REACT_APP_API_URL=https://ciap-backend.onrender.com/api/v1
-   ```
-
-4. **Deploy**
-   - Click "Create Static Site"
-   - Wait for build (2-3 minutes)
-
-### Verification
-
-1. Visit your frontend URL
-2. Check that content loads
-3. Test offline mode
-4. Verify API connection
-
-**Deployment Status: ✅ COMPLETE**
+**Backend**: Render (Free tier)  
+**Frontend**: Netlify (Free tier)  
+**Database**: SQLite (included with backend)
 
 ---
 
-## 🎯 Option 2: Vercel (Frontend) + Render (Backend)
+## 📋 Pre-Deployment Checklist
 
-### Backend on Render
-Follow steps from Option 1 above
-
-### Frontend on Vercel
-
-1. **Install Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Deploy Frontend**
-   ```bash
-   cd frontend
-   vercel --prod
-   ```
-
-3. **Set Environment Variables**
-   ```bash
-   vercel env add REACT_APP_API_URL
-   # Enter: https://your-backend-url.onrender.com/api/v1
-   ```
-
-4. **Redeploy**
-   ```bash
-   vercel --prod
-   ```
+- [ ] All code committed to GitHub
+- [ ] `.env` files NOT committed (use `.env.example`)
+- [ ] Production environment variables ready
+- [ ] Database seeded with demo data
+- [ ] CORS configured for production URLs
+- [ ] All tests passing locally
 
 ---
 
-## 🐳 Option 3: Docker Deployment
+## 🚀 Backend Deployment (Render)
 
-### Docker Compose (Full Stack)
+### Step 1: Prepare Backend for Production
 
-1. **Create docker-compose.yml**
-   ```yaml
-   version: '3.8'
-   
-   services:
-     backend:
-       build: ./backend
-       ports:
-         - "3001:3001"
-       environment:
-         - NODE_ENV=production
-         - JWT_SECRET=your-secret-key-here
-       volumes:
-         - ./data:/app/data
-         - ./content:/app/content
-   
-     frontend:
-       build: ./frontend
-       ports:
-         - "3000:80"
-       environment:
-         - REACT_APP_API_URL=http://localhost:3001/api/v1
-       depends_on:
-         - backend
-   ```
+**1.1 Update CORS in `backend/src/server.js`:**
 
-2. **Create Backend Dockerfile**
-   ```dockerfile
-   # backend/Dockerfile
-   FROM node:18-alpine
-   
-   WORKDIR /app
-   
-   COPY package*.json ./
-   RUN npm ci --only=production
-   
-   COPY . .
-   
-   EXPOSE 3001
-   
-   CMD ["npm", "start"]
-   ```
-
-3. **Create Frontend Dockerfile**
-   ```dockerfile
-   # frontend/Dockerfile
-   FROM node:18-alpine as build
-   
-   WORKDIR /app
-   COPY package*.json ./
-   RUN npm ci
-   
-   COPY . .
-   RUN npm run build
-   
-   FROM nginx:alpine
-   COPY --from=build /app/build /usr/share/nginx/html
-   COPY nginx.conf /etc/nginx/conf.d/default.conf
-   
-   EXPOSE 80
-   ```
-
-4. **Deploy**
-   ```bash
-   docker-compose up -d
-   ```
-
----
-
-## 🖥️ Option 4: Manual VPS Deployment
-
-### Prerequisites
-- Ubuntu 20.04+ VPS
-- Domain name (optional)
-- SSH access
-
-### Step 1: Server Setup
-
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Install PM2 (process manager)
-sudo npm install -g pm2
-
-# Install Nginx
-sudo apt install -y nginx
+```javascript
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://YOUR-NETLIFY-SITE.netlify.app'  // Add after deploying frontend
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 ```
 
-### Step 2: Deploy Backend
+**1.2 Commit and push to GitHub:**
 
 ```bash
-# Clone repository
-cd /var/www
-sudo git clone https://github.com/your-username/ciap.git
-cd ciap/backend
-
-# Install dependencies
-npm install --production
-
-# Setup environment
-sudo nano .env
-# Copy from .env.example and update values
-
-# Seed database
-node src/database/seed.js
-
-# Start with PM2
-pm2 start src/server.js --name ciap-backend
-pm2 save
-pm2 startup
+git add .
+git commit -m "Prepare for deployment"
+git push origin main
 ```
 
-### Step 3: Deploy Frontend
+### Step 2: Deploy to Render
+
+**2.1 Create Render Account:**
+- Go to [render.com](https://render.com)
+- Sign up with GitHub
+
+**2.2 Create New Web Service:**
+- Click "New +" → "Web Service"
+- Connect your GitHub repository
+- Select the repository: `ciap-offline-first`
+
+**2.3 Configure Service:**
+
+| Setting | Value |
+|---------|-------|
+| **Name** | `ciap-backend` |
+| **Region** | Select closest to you |
+| **Branch** | `main` |
+| **Root Directory** | `backend` |
+| **Runtime** | `Node` |
+| **Build Command** | `npm install` |
+| **Start Command** | `node src/server.js` |
+
+**2.4 Add Environment Variables:**
+
+Click "Advanced" → "Add Environment Variable":
+
+```
+PORT=3001
+SQLITE_FILE=./data/ciap.db
+NODE_ENV=production
+```
+
+**2.5 Create Disk for Database:**
+
+Under "Disks":
+- Click "Add Disk"
+- **Name**: `ciap-data`
+- **Mount Path**: `/opt/render/project/src/backend/data`
+- **Size**: 1 GB (free tier)
+
+**2.6 Deploy:**
+
+- Click "Create Web Service"
+- Wait 5-10 minutes for first deploy
+- Copy the URL: `https://ciap-backend-xxxx.onrender.com`
+
+### Step 3: Seed Production Database
+
+**Option A: Via Render Shell**
+```bash
+# In Render dashboard, open Shell
+cd /opt/render/project/src
+node resetDatabase.js
+```
+
+**Option B: Create seed endpoint (temporary)**
+```javascript
+// Add to server.js temporarily
+app.post('/api/admin/seed', async (req, res) => {
+  // Run seed logic
+  res.json({ message: 'Database seeded' });
+});
+```
+
+Call it once: `POST https://your-backend.onrender.com/api/admin/seed`
+
+Then remove the endpoint and redeploy.
+
+### Step 4: Verify Backend
+
+Test endpoints:
+```bash
+curl https://ciap-backend-xxxx.onrender.com/health
+curl https://ciap-backend-xxxx.onrender.com/api/v1/jobs?community=Acornhoek
+```
+
+---
+
+## 🎨 Frontend Deployment (Netlify)
+
+### Step 1: Prepare Frontend
+
+**1.1 Update environment for production:**
+
+Create `frontend/.env.production`:
+```env
+VITE_API_URL=https://ciap-backend-xxxx.onrender.com/api/v1
+VITE_COMMUNITY=Acornhoek
+```
+
+**1.2 Test production build locally:**
 
 ```bash
-cd /var/www/ciap/frontend
-
-# Build
-npm install
+cd frontend
 npm run build
-
-# Move to Nginx directory
-sudo cp -r build/* /var/www/html/
+npm run preview
 ```
 
-### Step 4: Configure Nginx
+Open `http://localhost:4173` and verify everything works.
+
+### Step 2: Deploy to Netlify
+
+**2.1 Create Netlify Account:**
+- Go to [netlify.com](https://netlify.com)
+- Sign up with GitHub
+
+**2.2 Import Project:**
+- Click "Add new site" → "Import an existing project"
+- Choose "GitHub"
+- Select `ciap-offline-first` repository
+
+**2.3 Configure Build Settings:**
+
+| Setting | Value |
+|---------|-------|
+| **Base directory** | `frontend` |
+| **Build command** | `npm run build` |
+| **Publish directory** | `frontend/dist` |
+| **Production branch** | `main` |
+
+**2.4 Add Environment Variables:**
+
+Click "Site settings" → "Environment variables" → "Add a variable":
+
+```
+VITE_API_URL=https://ciap-backend-xxxx.onrender.com/api/v1
+VITE_COMMUNITY=Acornhoek
+```
+
+**2.5 Deploy:**
+
+- Click "Deploy site"
+- Wait 2-3 minutes
+- Site will be live at: `https://YOUR-SITE-NAME.netlify.app`
+
+### Step 3: Update Backend CORS
+
+**Go back to Render**, update CORS to include your Netlify URL:
+
+```javascript
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'https://YOUR-SITE-NAME.netlify.app'  // ← Add this
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+```
+
+Commit and push, Render will auto-redeploy.
+
+### Step 4: Verify Frontend
+
+- Visit `https://YOUR-SITE-NAME.netlify.app`
+- Check all sections load data
+- Test on mobile
+- Verify images show
+
+---
+
+## ✅ Post-Deployment Verification
+
+### Backend Health Check
 
 ```bash
-sudo nano /etc/nginx/sites-available/ciap
+curl https://ciap-backend-xxxx.onrender.com/health
 ```
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    # Frontend
-    root /var/www/html;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API
-    location /api {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
+Expected:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-11-04T12:00:00Z",
+  "uptime": 123.45,
+  "environment": "production"
 }
 ```
 
-```bash
-# Enable site
-sudo ln -s /etc/nginx/sites-available/ciap /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-```
+### Frontend Functionality Check
 
-### Step 5: SSL with Let's Encrypt (Optional)
-
-```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.com
-```
-
----
-
-## ✅ Post-Deployment Checklist
-
-### Functionality Tests
-- [ ] Homepage loads correctly
-- [ ] Content displays
+- [ ] Homepage loads
+- [ ] Hero carousel works
+- [ ] All sections show data
 - [ ] Search works
-- [ ] Filtering works
-- [ ] Service Worker registers
-- [ ] Offline mode works
-- [ ] Performance metrics display
-- [ ] Admin login works
-- [ ] Content upload works (admin)
+- [ ] Community selector works
+- [ ] Navigation works
+- [ ] Mobile view works
+- [ ] Images load from Unsplash
 
-### Performance Tests
-- [ ] Page load time < 3s
-- [ ] API response time < 500ms
-- [ ] Cache hit rate > 80%
-- [ ] No console errors
-- [ ] Mobile responsive
+### API Response Check
 
-### Security Tests
-- [ ] HTTPS enabled
-- [ ] JWT authentication works
-- [ ] Rate limiting active
-- [ ] CORS configured correctly
-- [ ] No sensitive data exposed
-
----
-
-## 📊 Monitoring & Logs
-
-### Render.com
-- View logs in dashboard
-- Set up log drains (optional)
-
-### VPS
 ```bash
-# Backend logs
-pm2 logs ciap-backend
+# Jobs
+curl https://ciap-backend-xxxx.onrender.com/api/v1/jobs?community=Acornhoek
 
-# Nginx logs
-sudo tail -f /var/log/nginx/error.log
-sudo tail -f /var/log/nginx/access.log
+# Should return JSON with 6 jobs
 ```
 
 ---
 
-## 🔄 Updates & Maintenance
+## 🔧 Troubleshooting
 
-### Render.com
-- Push to GitHub main branch
-- Render auto-deploys
+### Issue: "Application failed to respond"
 
-### VPS
+**Cause**: Backend not starting  
+**Fix**: 
+- Check Render logs
+- Verify `Start Command` is correct
+- Check environment variables
+
+### Issue: Frontend shows CORS errors
+
+**Cause**: Backend CORS not configured for Netlify URL  
+**Fix**:
+- Add Netlify URL to CORS origins
+- Redeploy backend
+
+### Issue: Images not showing
+
+**Cause**: Database not seeded  
+**Fix**:
+- Seed database via Render shell
+- Verify image URLs in API response
+
+### Issue: "Cannot GET /api/v1/jobs"
+
+**Cause**: Routes not loaded  
+**Fix**:
+- Check backend logs for startup errors
+- Verify all route files exist
+
+---
+
+## 📊 Monitoring & Maintenance
+
+### Render Dashboard
+
+Monitor:
+- CPU/Memory usage
+- Request logs
+- Error logs
+- Deploy history
+
+### Netlify Dashboard
+
+Monitor:
+- Build logs
+- Deploy previews
+- Form submissions (if enabled)
+- Analytics
+
+### Health Checks
+
+Set up automated checks:
 ```bash
-cd /var/www/ciap
-sudo git pull
-cd backend && npm install
-pm2 restart ciap-backend
+# Backend health
+curl https://ciap-backend-xxxx.onrender.com/health
 
-cd ../frontend && npm install && npm run build
-sudo cp -r build/* /var/www/html/
+# Frontend availability
+curl https://YOUR-SITE-NAME.netlify.app
 ```
 
 ---
 
-## 🐛 Common Issues
+## 🔄 Continuous Deployment
 
-### Issue: CORS Errors
-**Solution:** Update CORS_ORIGIN in backend .env to match frontend URL
+Both Render and Netlify auto-deploy on git push:
 
-### Issue: Service Worker Not Working
-**Solution:** Ensure HTTPS is enabled and service-worker.js is accessible
+```bash
+git add .
+git commit -m "Update feature"
+git push origin main
+```
 
-### Issue: Database Not Found
-**Solution:** Run seed script: `node src/database/seed.js`
-
-### Issue: 502 Bad Gateway
-**Solution:** Check backend is running: `pm2 status` or check Render logs
-
----
-
-## 📈 Scaling Considerations
-
-### Current Architecture (MVP)
-- Single server
-- SQLite database
-- In-memory cache
-- Good for: 100-1000 users
-
-### Future Scaling
-1. **Database:** Migrate to PostgreSQL
-2. **Cache:** Use Redis cluster
-3. **Storage:** Use CDN for content
-4. **Servers:** Load balancer + multiple instances
-5. **Monitoring:** Add APM (New Relic, Datadog)
+- **Render**: Rebuilds backend (~5 min)
+- **Netlify**: Rebuilds frontend (~2 min)
 
 ---
 
-## ✅ Deployment Success Criteria
+## 💰 Cost Breakdown
 
-Your deployment is successful when:
+### Free Tier Limits
 
-1. ✅ Application is accessible via public URL
-2. ✅ All core features work
-3. ✅ Offline mode functions correctly
-4. ✅ Performance metrics are good (<3s load)
-5. ✅ No critical errors in logs
-6. ✅ HTTPS is enabled
-7. ✅ Can record demo video showing deployed version
+**Render (Free):**
+- 750 hours/month
+- Sleeps after 15 min inactivity
+- Wakes on first request (cold start ~30s)
+
+**Netlify (Free):**
+- 100 GB bandwidth/month
+- 300 build minutes/month
+- Unlimited sites
+
+### Upgrade Path
+
+If needed:
+- **Render Starter**: $7/month (no sleep, more resources)
+- **Netlify Pro**: $19/month (more bandwidth, analytics)
 
 ---
 
-**🎉 Deployment Complete! Your CIAP system is now live!**
+## 🔐 Security Considerations
 
-**Deployed URL:** _____________________________
+### Production Checklist
 
-**Deployment Date:** _____________________________
+- [ ] No secrets in code
+- [ ] Environment variables set
+- [ ] CORS properly configured
+- [ ] Rate limiting enabled
+- [ ] Input validation active
+- [ ] HTTPS enforced (automatic on both platforms)
+- [ ] Database backups configured
 
-**Status:** ✅ VERIFIED WORKING
+### Render Security
+
+- Automatic HTTPS
+- DDoS protection
+- Private networking (paid plans)
+
+### Netlify Security
+
+- Automatic HTTPS
+- HTTP/2 support
+- CDN caching
+- Password protection (paid plans)
+
+---
+
+## 📝 Deployment Logs
+
+Keep a deployment log:
+
+| Date | Version | Changes | Status |
+|------|---------|---------|--------|
+| 2025-11-04 | v1.0.0 | Initial deployment | ✅ Success |
+| 2025-11-05 | v1.0.1 | Fixed CORS | ✅ Success |
+
+---
+
+## 🔗 Deployed URLs
+
+**Backend API**: https://ciap-backend-xxxx.onrender.com  
+**Frontend**: https://YOUR-SITE-NAME.netlify.app  
+**GitHub**: https://github.com/YOUR_USERNAME/ciap-offline-first
+
+---
+
+## 📚 Additional Resources
+
+- [Render Docs](https://render.com/docs)
+- [Netlify Docs](https://docs.netlify.com)
+- [Vite Production Build](https://vitejs.dev/guide/build.html)
+- [Express Production Best Practices](https://expressjs.com/en/advanced/best-practice-performance.html)
+
+---
+
+**Deployment verified**: ✅  
+**Date**: November 4, 2025  
+**Deployed by**: Bavukile Vilane

@@ -1,39 +1,287 @@
+/* ========================================
+   CIAP Header - Responsive Navigation
+   ======================================== */
+
 .ciap-header {
   background: #0b1f34;
   color: #fff;
   padding: 12px 16px;
   border-bottom: 1px solid rgba(255,255,255,.08);
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: auto 1fr auto;
   gap: 12px;
   align-items: center;
-}
-@media (max-width: 900px) {
-  .ciap-header { grid-template-columns: 1fr; }
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.ciap-header__brand { display: flex; gap: 12px; align-items: center; }
+/* Brand Section */
+.ciap-header__brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.ciap-header__brand:hover {
+  opacity: 0.9;
+}
+
 .ciap-logo {
-  width: 36px; height: 36px; border-radius: 50%;
-  display: grid; place-items: center; background:#13314f;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(255,255,255,.06);
+  flex-shrink: 0;
 }
-.ciap-title { font-weight: 700; font-size: 16px; }
-.ciap-subtitle { font-size: 12px; opacity:.9 }
 
-.ciap-header__search { display: flex; justify-content: center; }
+.ciap-brandtext .title {
+  font-weight: 800;
+  line-height: 1.2;
+  font-size: 16px;
+}
+.ciap-brandtext .subtitle {
+  font-size: 12px;
+  opacity: .8;
+  line-height: 1.2;
+}
+
+/* Search Bar */
+.ciap-header__search {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .ciap-search {
-  width: 100%; max-width: 560px;
-  border-radius: 999px; border: 1px solid rgba(255,255,255,.25);
-  padding: 10px 14px; background: rgba(255,255,255,.08); color: #fff;
+  width: 100%;
+  max-width: 560px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.25);
+  padding: 10px 16px;
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-size: 14px;
+  transition: background 0.2s, border-color 0.2s;
 }
-.ciap-search::placeholder { color: rgba(255,255,255,.75); }
+.ciap-search:focus {
+  outline: none;
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.4);
+}
+.ciap-search::placeholder {
+  color: rgba(255,255,255,.75);
+}
 
-.ciap-header__actions { display:flex; gap:12px; justify-content:flex-end; align-items:center; }
+/* Actions Section */
+.ciap-header__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .ciap-select {
-  background:#fff; color:#0b1f34; border-radius: 999px; padding:8px 10px; border:none;
+  background: #fff;
+  color: #0b1f34;
+  border-radius: 999px;
+  padding: 8px 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
-.ciap-nav button {
-  background: transparent; color:#fff; border:none; padding:8px 8px; cursor:pointer;
+.ciap-select:hover {
+  transform: scale(1.02);
+}
+.ciap-select:focus {
+  outline: 2px solid rgba(255,255,255,.5);
+  outline-offset: 2px;
+}
+
+/* Desktop Navigation */
+.ciap-nav--desktop {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ciap-nav--desktop button {
+  background: transparent;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
   border-radius: 6px;
+  transition: background 0.2s;
 }
-.ciap-nav button:hover { background: rgba(255,255,255,.1); }
+.ciap-nav--desktop button:hover {
+  background: rgba(255,255,255,.1);
+}
+
+/* Burger Menu (hidden on desktop) */
+.ciap-burger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.ciap-burger:hover {
+  background: rgba(255,255,255,.1);
+}
+
+.burger-line {
+  width: 24px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+/* Mobile Navigation (slide-out drawer) */
+.ciap-nav--mobile {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background: #0b1f34;
+  padding: 80px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  box-shadow: -4px 0 20px rgba(0,0,0,.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.mobile-nav-item {
+  background: transparent;
+  color: #fff;
+  border: none;
+  padding: 16px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.mobile-nav-item:hover,
+.mobile-nav-item:focus {
+  background: rgba(255,255,255,.1);
+  outline: none;
+}
+
+/* Overlay (for closing mobile menu) */
+.ciap-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,.5);
+  z-index: 999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* Tablet & Below: Show burger, hide desktop nav */
+@media (max-width: 900px) {
+  .ciap-nav--desktop {
+    display: none;
+  }
+  
+  .ciap-burger {
+    display: flex;
+  }
+}
+
+/* Mobile: Stack header vertically */
+@media (max-width: 768px) {
+  .ciap-header {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 8px;
+  }
+  
+  .ciap-header__brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  
+  .ciap-header__search {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  
+  .ciap-header__actions {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 8px;
+  }
+  
+  .ciap-brandtext .title {
+    font-size: 14px;
+  }
+  .ciap-brandtext .subtitle {
+    font-size: 11px;
+  }
+  
+  .ciap-search {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+  
+  .ciap-select {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+
+/* Small Mobile: Further adjustments */
+@media (max-width: 480px) {
+  .ciap-header {
+    padding: 10px 12px;
+  }
+  
+  .ciap-logo {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .ciap-brandtext .subtitle {
+    display: none; /* Hide subtitle on very small screens */
+  }
+  
+  .ciap-nav--mobile {
+    width: 100%;
+  }
+}

@@ -1,31 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ContentBrowser.css';
+import { API_BASE } from '../config/appConfig.jsx';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:3001/api/v1';
+const API = API_BASE;
 
 export default function ContentBrowser() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
+    setError('');
     try {
       const params = {};
       if (selectedType !== 'all') params.type = selectedType;
       if (q.trim()) params.q = q.trim();
-      const { data } = await axios.get(`${API}/content`, { params });
+
+      const url = `${API}/content`;
+      const { data } = await axios.get(url, { params });
       setItems(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (err) {
+      console.error('Content fetch failed:', err?.response?.status, err?.message);
       setItems([]);
+      setError('No content found or endpoint not available yet.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, []); // initial
+  useEffect(() => {
+    fetchData(); // initial load
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSearch = (e) => {
     e.preventDefault();
@@ -61,13 +71,17 @@ export default function ContentBrowser() {
       <div className="list">
         {loading && <div className="card section">Loading…</div>}
 
-        {!loading && items.length === 0 && (
+        {!loading && error && (
+          <div className="card section empty">{error}</div>
+        )}
+
+        {!loading && !error && items.length === 0 && (
           <div className="card section empty">
             No results. Adjust your filters and try again.
           </div>
         )}
 
-        {!loading && items.map((it) => (
+        {!loading && !error && items.map((it) => (
           <div key={it.id || `${it.title}-${it.type}`} className="card section item">
             <h3>{it.title || 'Untitled'}</h3>
             <div className="meta">

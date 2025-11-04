@@ -1,0 +1,29 @@
+/* frontend/src/components/CardGrid.css */
+.cg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.cg-card {
+  border: 1px solid #E6E8EB;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  transition: box-shadow .15s ease;
+}
+.cg-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+.cg-thumb { height: 120px; background: #F3F5F7; }
+.cg-body { padding: 12px 14px 16px; }
+.cg-title { margin: 0 0 6px; font-size: 16px; line-height: 1.25; color: #0F172A; }
+.cg-desc { margin: 0 0 10px; color: #475569; font-size: 14px; }
+.cg-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.cg-badge {
+  border: 1px solid #CBD5E1;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: #334155;
+  background: #F8FAFC;
+}
+.cg-badge.cg-offline { border-color: #94A3B8; color: #0F172A; }
+.cg-badge.cg-pending { border-color: #F59E0B; color: #92400E; background: #FFFBEB; }

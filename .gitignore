@@ -71,3 +71,27 @@ tmp/
 # === Production Artifacts ===
 *.zip
 *.tar.gz
+
+# === Local Project Management / Snapshots ===
+# Internal diagnostic and reference folders (not for Git)
+_status/
+scripts/clean.ps1
+scripts/snapshot.ps1
+scripts/print_tree.ps1
+
+# Ignore PowerShell temp outputs and snapshot zips
+*_snapshot_*.zip
+*_snapshot_*/
+MANIFEST.txt
+file_tree.txt
+
+# Misc development artifacts
+*.bak
+*.old
+*.log.old
+*.temp
+*.tmp.txt
+
+# Prevent accidental uploads of Windows recycle data or hidden files
+$RECYCLE.BIN/
+ehthumbs.db

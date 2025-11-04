@@ -10,7 +10,12 @@
     "test": "jest --coverage",
     "seed": "node src/database/seed.js"
   },
-  "keywords": ["offline-first", "caching", "mesh-networking", "community-portal"],
+  "keywords": [
+    "offline-first",
+    "caching",
+    "mesh-networking",
+    "community-portal"
+  ],
   "author": "Bavukile Vilane",
   "license": "MIT",
   "dependencies": {
@@ -23,16 +28,16 @@
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
-    "sqlite3": "^5.1.6",
+    "sqlite3": "^5.1.7",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2",
     "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
     "supertest": "^7.0.0"
   }
 }

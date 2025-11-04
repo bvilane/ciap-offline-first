@@ -43,8 +43,20 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// CORS
-app.use(cors(config.cors));
+// ✅ FIXED CORS - Allow both CRA (3000) and Vite (5173)
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',  // Create React App default
+    'http://localhost:5173',  // Vite default
+    'http://localhost:5174',  // Vite alternative port
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -152,6 +164,7 @@ async function startServer() {
       });
       logger.info(`📡 API base: http://localhost:${config.server.port}/api/v1`);
       logger.info(`❤️  Health:  http://localhost:${config.server.port}/health`);
+      logger.info(`🌐 CORS enabled for: localhost:3000, localhost:5173, localhost:5174`);
     });
   } catch (error) {
     logger.error('Failed to start server', { error: error.message });

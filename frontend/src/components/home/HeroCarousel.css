@@ -5,26 +5,95 @@
   height: 240px;
   border-radius: 16px;
   overflow: hidden;
-  background: linear-gradient(120deg,#ff7c55,#ffb27a 45%, #ffd6b7);
-  box-shadow: var(--shadow);
   display: grid;
   place-items: center;
 }
 @media (max-width: 900px) { .hero { height: 200px; } }
 
-.hero-inner { text-align:center; color:#0b1f34; padding: 0 12px; }
+/* Default gradient when no image provided */
+.hero.with-gradient {
+  background: linear-gradient(120deg,#ff7c55,#ffb27a 45%, #ffd6b7);
+}
+
+/* Photo background */
+.hero.with-image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: saturate(1.05);
+}
+
+/* === Scrim BELOW content === */
+.hero.with-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.50) 100%),
+    rgba(0,0,0,0.18);
+  pointer-events: none;
+  z-index: 0;      /* <-- behind text */
+}
+
+/* Text block sits above scrim, no dark box */
+.hero-inner {
+  position: relative;
+  z-index: 1;      /* <-- above scrim */
+  text-align: center;
+  padding: 0 12px;
+}
+
+.hero.with-image .hero-inner {
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,.65);
+}
+
+.hero.with-gradient .hero-inner {
+  color: #0b1f34;
+  text-shadow: none;
+}
+
 .hero-title { font-weight:800; font-size: 26px; }
-.hero-blurb { margin-top: 6px; font-size: 14px; opacity:.9 }
-.hero-cta { margin-top: 12px; }
+.hero-blurb { margin-top: 6px; font-size: 14px; opacity:.98; }
+
+.hero-cta {
+  margin-top: 12px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+/* High-contrast CTA on photos */
+.hero.with-image .hero-cta {
+  background: rgba(255,255,255,0.95);
+  color: #0b1f34;
+  border-color: rgba(255,255,255,0.95);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+
+/* Dark CTA on gradient */
+.hero.with-gradient .hero-cta {
+  background: #0b1f34;
+  color: #fff;
+  border-color: #0b1f34;
+}
 
 .hero-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
   width: 36px; height: 36px; border-radius: 50%;
   border: none; background: rgba(255,255,255,.9); cursor: pointer;
   display: grid; place-items:center; font-size: 22px; color:#0b1f34;
+  z-index: 2;
 }
 .hero-nav.left { left: 10px; } .hero-nav.right { right:10px; }
 
-.hero-dots { position: absolute; bottom: 10px; left: 0; right:0; display:flex; gap:6px; justify-content:center; }
-.dot { width:8px; height:8px; border-radius:50%; background: rgba(0,0,0,.25); cursor:pointer;}
+.hero-dots {
+  position: absolute; bottom: 10px; left: 0; right:0;
+  display:flex; gap:6px; justify-content:center;
+  z-index: 2;
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.85); cursor: pointer;
+}
 .dot.active { background: #0b1f34; }

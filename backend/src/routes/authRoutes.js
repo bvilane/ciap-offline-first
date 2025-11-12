@@ -1,179 +1,172 @@
-/**
- * Authentication Routes
- * Handles user registration, login, and token management
- */
-
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const database = require('../database/connection');
-const config = require('../config');
-const logger = require('../utils/logger');
-const { validateUser, validateLogin } = require('../validators/authValidator');
-
 const router = express.Router();
+const User = require('../models/User');
+const { generateToken, authenticateToken } = require('../middleware/auth');
 
 /**
  * POST /api/v1/auth/register
- * Register new user
+ * Register a new user
  */
-router.post('/register', async (req, res, next) => {
+router.post('/register', async (req, res) => {
   try {
-    // Validate input
-    const { error } = validateUser(req.body);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: error.details[0].message,
+    const { email, password, name } = req.body;
+
+    // Validation
+    if (!email || !password || !name) {
+      return res.status(400).json({ 
+        error: 'Email, password, and name are required' 
       });
     }
 
-    const { username, password, email, role } = req.body;
-
-    // Check if user exists
-    const existingUser = await database.queryOne(
-      'SELECT * FROM users WHERE username = ? OR email = ?',
-      [username, email]
-    );
-
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        error: 'User already exists',
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        error: 'Invalid email format' 
       });
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, config.security.bcryptRounds);
+    // Password strength validation
+    if (password.length < 8) {
+      return res.status(400).json({ 
+        error: 'Password must be at least 8 characters' 
+      });
+    }
 
-    // Create user
-    const userId = uuidv4();
-    await database.execute(
-      `INSERT INTO users (user_id, username, password_hash, email, role)
-       VALUES (?, ?, ?, ?, ?)`,
-      [userId, username, passwordHash, email, role || 'user']
-    );
+    // Create user (default role: 'user')
+    const user = await User.create({ 
+      email: email.toLowerCase().trim(), 
+      password, 
+      name: name.trim() 
+    });
 
-    logger.info('User registered', { userId, username });
+    // Generate token
+    const token = generateToken(user);
 
     res.status(201).json({
-      success: true,
       message: 'User registered successfully',
-      data: { userId, username, email },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      },
+      token
     });
   } catch (error) {
-    logger.error('Registration failed', { error: error.message });
-    next(error);
+    console.error('Registration error:', error);
+    
+    if (error.message === 'Email already exists') {
+      return res.status(409).json({ error: error.message });
+    }
+    
+    res.status(500).json({ 
+      error: 'Registration failed. Please try again.' 
+    });
   }
 });
 
 /**
  * POST /api/v1/auth/login
- * User login
+ * Login user
  */
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (req, res) => {
   try {
-    // Validate input
-    const { error } = validateLogin(req.body);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: error.details[0].message,
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ 
+        error: 'Email and password are required' 
       });
     }
 
-    const { username, password } = req.body;
-
     // Find user
-    const user = await database.queryOne(
-      'SELECT * FROM users WHERE username = ?',
-      [username]
-    );
-
+    const user = await User.findByEmail(email.toLowerCase().trim());
+    
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid credentials',
+      return res.status(401).json({ 
+        error: 'Invalid email or password' 
       });
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    const isValidPassword = await User.verifyPassword(password, user.password_hash);
+    
     if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid credentials',
+      return res.status(401).json({ 
+        error: 'Invalid email or password' 
       });
     }
 
-    // Update last login
-    await database.execute(
-      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE user_id = ?',
-      [user.user_id]
-    );
+    // Check if account is active
+    if (user.status !== 'active') {
+      return res.status(403).json({ 
+        error: 'Account is inactive. Please contact support.' 
+      });
+    }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        userId: user.user_id,
-        username: user.username,
-        role: user.role,
-      },
-      config.security.jwtSecret,
-      { expiresIn: config.security.jwtExpiry }
-    );
-
-    logger.info('User logged in', { userId: user.user_id, username });
+    // Generate token
+    const token = generateToken(user);
 
     res.json({
-      success: true,
       message: 'Login successful',
-      data: {
-        token,
-        user: {
-          userId: user.user_id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-        },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
       },
+      token
     });
   } catch (error) {
-    logger.error('Login failed', { error: error.message });
-    next(error);
+    console.error('Login error:', error);
+    res.status(500).json({ 
+      error: 'Login failed. Please try again.' 
+    });
   }
 });
 
 /**
- * POST /api/v1/auth/verify
- * Verify JWT token
+ * GET /api/v1/auth/me
+ * Get current user info (requires authentication)
  */
-router.post('/verify', async (req, res) => {
+router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        error: 'No token provided',
-      });
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
 
-    const decoded = jwt.verify(token, config.security.jwtSecret);
-
     res.json({
-      success: true,
-      data: decoded,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        status: user.status,
+        created_at: user.created_at
+      }
     });
   } catch (error) {
-    res.status(401).json({
-      success: false,
-      error: 'Invalid token',
+    console.error('Get me error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get user info' 
     });
   }
+});
+
+/**
+ * POST /api/v1/auth/logout
+ * Logout user (optional - mainly for client-side token clearing)
+ */
+router.post('/logout', authenticateToken, (req, res) => {
+  // With JWT, logout is mainly client-side (remove token)
+  // This endpoint is here for consistency
+  res.json({ 
+    message: 'Logout successful' 
+  });
 });
 
 module.exports = router;

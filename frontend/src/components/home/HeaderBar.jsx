@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './HeaderBar.css';
 import Logo from './Logo';
+import AuthModal from '../AuthModal';
 
 const COMMUNITIES = [
   'Acornhoek',
@@ -10,14 +11,6 @@ const COMMUNITIES = [
   'Custom…'
 ];
 
-const NAV_ITEMS = [
-  { id: 'home', label: 'Explore' },
-  { id: 'library', label: 'Community Board' },
-  { id: 'help', label: 'Help Center' },
-  { id: 'directory', label: 'Directory' },
-  { id: 'login', label: 'Log In' }
-];
-
 export default function HeaderBar({
   brandTitle = 'CIAP',
   subtitle = 'Community Internet Access Platform',
@@ -25,14 +18,58 @@ export default function HeaderBar({
   onCommunityChange,
   onNavigate,
   query,
-  onQueryChange
+  onQueryChange,
+  user,
+  isAuthenticated,
+  onLogout
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false); // NEW
+  const [authModalTab, setAuthModalTab] = useState('login'); // NEW
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false); // NEW
 
   const handleNavClick = (pageId) => {
+    // Handle auth modals
+    if (pageId === 'login') {
+      setAuthModalTab('login');
+      setAuthModalOpen(true);
+      setMenuOpen(false);
+      return;
+    }
+    if (pageId === 'register') {
+      setAuthModalTab('signup');
+      setAuthModalOpen(true);
+      setMenuOpen(false);
+      return;
+    }
+    
     onNavigate?.(pageId);
-    setMenuOpen(false); // Close menu after navigation
+    setMenuOpen(false);
   };
+
+  const handleLogout = () => {
+    onLogout?.();
+    setMenuOpen(false);
+    setAccountDropdownOpen(false);
+  };
+
+  // Dynamic nav items (NO login/signup buttons anymore)
+  const getNavItems = () => {
+    const baseItems = [
+      { id: 'home', label: 'Explore' },
+      { id: 'library', label: 'Community Board' },
+      { id: 'directory', label: 'Directory' },
+      { id: 'help', label: 'Help Center' }
+    ];
+
+    if (isAuthenticated && (user?.role === 'admin' || user?.role === 'moderator')) {
+      baseItems.push({ id: 'admin', label: 'Admin Dashboard' });
+    }
+
+    return baseItems;
+  };
+
+  const navItems = getNavItems();
 
   return (
     <>
@@ -53,7 +90,7 @@ export default function HeaderBar({
           </div>
         </div>
 
-        {/* Center: Search Bar (always visible) */}
+        {/* Center: Search Bar */}
         <div className="ciap-header__search">
           <input
             className="ciap-search"
@@ -65,7 +102,7 @@ export default function HeaderBar({
           />
         </div>
 
-        {/* Right: Community Selector + Nav (desktop) / Burger (mobile) */}
+        {/* Right: Community Selector + Nav + Account */}
         <div className="ciap-header__actions">
           <select
             className="ciap-select"
@@ -78,11 +115,58 @@ export default function HeaderBar({
 
           {/* Desktop Nav */}
           <nav className="ciap-nav ciap-nav--desktop" aria-label="Primary navigation">
-            {NAV_ITEMS.map(item => (
-              <button key={item.id} onClick={() => handleNavClick(item.id)}>
+            {navItems.map(item => (
+              <button 
+                key={item.id} 
+                onClick={() => handleNavClick(item.id)}
+                className="nav-btn"
+              >
                 {item.label}
               </button>
             ))}
+            
+            {/* Account Button/Dropdown */}
+            {isAuthenticated ? (
+              <div className="account-dropdown">
+                <button 
+                  className="account-btn"
+                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
+                  aria-expanded={accountDropdownOpen}
+                >
+                  <svg className="account-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>{user?.name || user?.email?.split('@')[0]}</span>
+                </button>
+                
+                {accountDropdownOpen && (
+                  <div className="dropdown-menu">
+                    <div className="dropdown-header">
+                      <strong>{user?.name || user?.email}</strong>
+                      <span className="user-role-badge">{user?.role}</span>
+                    </div>
+                    <button onClick={handleLogout} className="dropdown-item logout">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button 
+                className="account-btn login-btn"
+                onClick={() => {
+                  setAuthModalTab('login');
+                  setAuthModalOpen(true);
+                }}
+              >
+                <svg className="account-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Sign In</span>
+              </button>
+            )}
           </nav>
 
           {/* Mobile Burger */}
@@ -99,7 +183,7 @@ export default function HeaderBar({
         </div>
       </header>
 
-      {/* Mobile Slide-out Menu */}
+      {/* Mobile Menu */}
       {menuOpen && (
         <>
           <div 
@@ -108,7 +192,14 @@ export default function HeaderBar({
             aria-hidden="true"
           ></div>
           <nav className="ciap-nav--mobile" aria-label="Mobile navigation">
-            {NAV_ITEMS.map(item => (
+            {isAuthenticated && (
+              <div className="mobile-user-info">
+                <strong>{user?.name || user?.email}</strong>
+                <span className="user-role">{user?.role}</span>
+              </div>
+            )}
+            
+            {navItems.map(item => (
               <button 
                 key={item.id} 
                 className="mobile-nav-item"
@@ -117,8 +208,37 @@ export default function HeaderBar({
                 {item.label}
               </button>
             ))}
+            
+            {isAuthenticated ? (
+              <button 
+                className="mobile-nav-item logout"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            ) : (
+              <button 
+                className="mobile-nav-item"
+                onClick={() => {
+                  setAuthModalTab('login');
+                  setAuthModalOpen(true);
+                  setMenuOpen(false);
+                }}
+              >
+                Sign In
+              </button>
+            )}
           </nav>
         </>
+      )}
+
+      {/* Auth Modal */}
+      {authModalOpen && (
+        <AuthModal
+          initialTab={authModalTab}
+          onClose={() => setAuthModalOpen(false)}
+          onNavigate={onNavigate}
+        />
       )}
     </>
   );

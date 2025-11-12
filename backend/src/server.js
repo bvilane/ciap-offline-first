@@ -17,10 +17,10 @@ const database = require('./database/connection');
 // Existing routes you already had
 const contentRoutes = require('./routes/contentRoutes');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // NEW: Admin routes
 const metricsRoutes = require('./routes/metricsRoutes');
 
 // NEW: MVP community portal routes
-// (Create these files next if you haven't yet: noticesRoutes.js, jobsRoutes.js, skillsRoutes.js, directoryRoutes.js)
 let noticesRoutes, jobsRoutes, skillsRoutes, directoryRoutes;
 try { noticesRoutes = require('./routes/noticesRoutes'); } catch { noticesRoutes = null; }
 try { jobsRoutes = require('./routes/jobsRoutes'); } catch { jobsRoutes = null; }
@@ -91,6 +91,7 @@ app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 
 // ===== API Routes =====
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/admin', adminRoutes); // NEW: Admin routes
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/metrics', metricsRoutes);
 
@@ -165,6 +166,8 @@ async function startServer() {
       logger.info(`📡 API base: http://localhost:${config.server.port}/api/v1`);
       logger.info(`❤️  Health:  http://localhost:${config.server.port}/health`);
       logger.info(`🌐 CORS enabled for: localhost:3000, localhost:5173, localhost:5174`);
+      logger.info(`🔐 Auth endpoints: /api/v1/auth/login, /api/v1/auth/register`);
+      logger.info(`👤 Admin endpoints: /api/v1/admin/*`);
     });
   } catch (error) {
     logger.error('Failed to start server', { error: error.message });

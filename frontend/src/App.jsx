@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
 
 import { COMMUNITY_NAME, ENDPOINTS, API_BASE } from './config/appConfig.jsx';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 import OfflineIndicator from './components/OfflineIndicator.jsx';
 import BottomNav from './components/BottomNav.jsx';
@@ -13,16 +14,21 @@ import DirectoryPage from './components/DirectoryPage.jsx';
 import HeaderBar from './components/home/HeaderBar.jsx';
 import HeroCarousel from './components/home/HeroCarousel.jsx';
 import CategoryRow from './components/home/CategoryRow.jsx';
-
-// New section components
 import FeaturedSection from './components/home/FeaturedSection.jsx';
 import JobsSection from './components/home/JobsSection.jsx';
 import SkillsSection from './components/home/SkillsSection.jsx';
 import NoticesSection from './components/home/NoticesSection.jsx';
 import DirectoryPreview from './components/home/DirectoryPreview.jsx';
 import EventsSection from './components/home/EventsSection.jsx';
+import SubmitForm from './components/SubmitForm.jsx';
 
-export default function App() {
+// Auth pages
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+
+function AppContent() {
+  const { user, isAuthenticated, logout } = useAuth();
+  
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   
   useEffect(() => {
@@ -39,6 +45,8 @@ export default function App() {
   const [page, setPage] = useState('home');
   const [community, setCommunity] = useState(import.meta.env.VITE_COMMUNITY || COMMUNITY_NAME);
   const [query, setQuery] = useState('');
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitType, setSubmitType] = useState('notices');
 
   const apiUrl = useMemo(() => API_BASE, []);
 
@@ -61,7 +69,6 @@ export default function App() {
       setPage('library');
     } else {
       setPage('home');
-      // Scroll to relevant section if it exists
       setTimeout(() => {
         const element = document.getElementById('whats-happening');
         if (element) {
@@ -69,6 +76,17 @@ export default function App() {
         }
       }, 100);
     }
+  };
+
+  // Handle submit content
+  const handleSubmit = (type = 'notices') => {
+    setSubmitType(type);
+    setShowSubmitModal(true);
+  };
+
+  const handleSubmitSuccess = () => {
+    alert('✓ Submission received! It will be reviewed by community moderators.');
+    setShowSubmitModal(false);
   };
 
   return (
@@ -83,6 +101,9 @@ export default function App() {
         query={query}
         onQueryChange={setQuery}
         onNavigate={setPage}
+        user={user}
+        isAuthenticated={isAuthenticated}
+        onLogout={logout}
       />
 
       {page === 'home' && (
@@ -93,10 +114,8 @@ export default function App() {
             <CategoryRow onSelect={handleCategorySelect} />
           </div>
 
-          {/* Scroll anchor for "Explore Your Community" button */}
           <div id="whats-happening" aria-label="What's happening section" />
 
-          {/* Home Page Sections */}
           <FeaturedSection 
             apiBase={apiUrl}
             community={community}
@@ -132,12 +151,24 @@ export default function App() {
             onViewAll={handleViewAll}
           />
 
-          {/* ✅ CLEANER FOOTER - Only show debug info in development */}
+          {/* Floating Action Button - Submit Content */}
+          <div className="fab-container">
+            <button 
+              className="fab" 
+              onClick={() => handleSubmit('notices')}
+              aria-label="Submit content"
+            >
+              + Submit Content
+            </button>
+          </div>
+
+          {/* Dev Mode Footer */}
           {import.meta.env.DEV && (
             <footer className="container" style={{ marginTop: 40, marginBottom: 40 }}>
               <div className="card section" style={{ padding: 16, textAlign: 'center' }}>
                 <span className="subtle">
                   Dev Mode: API Base: <strong>{apiUrl}</strong> • Community: <strong>{community}</strong>
+                  {isAuthenticated && ` • Logged in as: ${user?.email} (${user?.role})`}
                 </span>
               </div>
             </footer>
@@ -165,11 +196,20 @@ export default function App() {
 
       {page === 'admin' && (
         <main className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
-          <AdminDashboard />
+          {isAuthenticated && (user?.role === 'admin' || user?.role === 'moderator') ? (
+            <AdminDashboard />
+          ) : (
+            <div className="card section">
+              <h2>Access Denied</h2>
+              <p>You need admin or moderator privileges to access this page.</p>
+              <button className="btn btn-primary" onClick={() => setPage('login')}>
+                Log In
+              </button>
+            </div>
+          )}
         </main>
       )}
 
-      {/* Placeholder pages */}
       {page === 'help' && (
         <main className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
           <div className="card section">
@@ -183,22 +223,32 @@ export default function App() {
       )}
 
       {page === 'login' && (
-        <main className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
-          <div className="card section">
-            <h2>Log In</h2>
-            <p>Coming soon: User authentication with Admin, Moderator, and General User roles.</p>
-            <button className="btn btn-secondary" onClick={() => setPage('home')}>
-              Back to Home
-            </button>
-          </div>
-        </main>
+        <LoginPage onSuccess={() => setPage('home')} />
       )}
 
-      {/* Desktop Footer - shows on desktop, hidden on mobile */}
-      <Footer community={community} onNavigate={setPage} />
+      {page === 'register' && (
+        <RegisterPage onSuccess={() => setPage('home')} />
+      )}
 
-      {/* Mobile Bottom Nav - shows on mobile, hidden on desktop */}
+      {/* Submit Form Modal */}
+      {showSubmitModal && (
+        <SubmitForm
+          type={submitType}
+          onClose={() => setShowSubmitModal(false)}
+          onSuccess={handleSubmitSuccess}
+        />
+      )}
+
+      <Footer community={community} onNavigate={setPage} />
       <BottomNav active={page} onNavigate={setPage} />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

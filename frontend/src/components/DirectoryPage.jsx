@@ -15,15 +15,27 @@ export default function DirectoryPage() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('All');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
+      setLoading(true);
       try {
-        const { data } = await axios.get(ENDPOINTS.directory, { params: { community: COMMUNITY_NAME } });
-        if (mounted) setItems(Array.isArray(data) ? data : []);
-      } catch {
+        const { data } = await axios.get(ENDPOINTS.directory, { 
+          params: { community: COMMUNITY_NAME } 
+        });
+        // FIXED: Backend returns { data: [...], categories: [...] }
+        // So we need data.data, not just data
+        if (mounted) {
+          const directoryItems = data?.data || data || [];
+          setItems(Array.isArray(directoryItems) ? directoryItems : []);
+        }
+      } catch (error) {
+        console.error('Directory fetch failed:', error);
         if (mounted) setItems(FALLBACK);
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
     return () => { mounted = false; };
@@ -39,34 +51,42 @@ export default function DirectoryPage() {
   }, [items, q, cat]);
 
   return (
-    <section className="directory">
-      <div className="card section">
-        <h2 className="section-title">Directory</h2>
-        <p className="subtle">Essential services in {COMMUNITY_NAME}. Tap to call.</p>
-        <div className="dir-controls">
-          <input className="input" placeholder="Search name, phone, address..." value={q} onChange={(e)=>setQ(e.target.value)} />
-          <select className="input" value={cat} onChange={(e)=>setCat(e.target.value)}>
-            {CATS.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
+    <div className="directory-page">
+      <div className="directory-header">
+        <h1>Directory</h1>
+        <p className="directory-subtitle">Essential services in {COMMUNITY_NAME}. Tap to call.</p>
       </div>
 
-      <div className="dir-list">
-        {filtered.length === 0 && <div className="card section subtle">No matches.</div>}
-        {filtered.map(x => (
-          <div key={x.id || x.name} className="card section dir-item">
-            <div className="dir-primary">
-              <div className="dir-name">{x.name}</div>
-              <div className="dir-cat">{x.category || 'Other'}</div>
-            </div>
-            <div className="dir-meta">
-              {x.phone && <a className="btn" href={`tel:${x.phone}`}>Call</a>}
-              <div className="subtle">{x.hours || ''}</div>
-              <div className="subtle">{x.address || ''}</div>
-            </div>
-          </div>
-        ))}
+      <div className="directory-search-bar">
+        <input type="search" className="directory-search-input" placeholder="Search name, phone, address..." value={q} onChange={(e) => setQ(e.target.value)} />
+        <select className="directory-category-select" value={cat} onChange={(e) => setCat(e.target.value)}>
+          {CATS.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
       </div>
-    </section>
+
+      {loading ? (
+        <div className="directory-loading">Loading directory...</div>
+      ) : filtered.length === 0 ? (
+        <div className="directory-empty"><p>No matches found.</p></div>
+      ) : (
+        <div className="directory-list">
+          {filtered.map(x => (
+            <div key={x.id || x.name} className="directory-item">
+              <div className="directory-item-content">
+                <div className="directory-item-info">
+                  <h3 className="directory-item-name">{x.name}</h3>
+                  <span className="directory-item-category">{x.category || 'Other'}</span>
+                  {x.hours && <p className="directory-item-hours">🕒 {x.hours}</p>}
+                  {x.address && <p className="directory-item-address">📍 {x.address}</p>}
+                </div>
+                <div className="directory-item-actions">
+                  {x.phone && <a href={`tel:${x.phone}`} className="directory-action-btn directory-call-btn">📞 Call</a>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

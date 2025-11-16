@@ -18,22 +18,24 @@ export default function ContentBrowser() {
     try {
       const params = {};
       if (selectedType !== 'all') params.type = selectedType;
-      if (q.trim()) params.q = q.trim();
+      if (q.trim()) params.search = q.trim();
 
       const url = `${API}/content`;
       const { data } = await axios.get(url, { params });
-      setItems(Array.isArray(data) ? data : []);
+      
+      const contentItems = data?.data || [];
+      setItems(Array.isArray(contentItems) ? contentItems : []);
     } catch (err) {
       console.error('Content fetch failed:', err?.response?.status, err?.message);
       setItems([]);
-      setError('No content found or endpoint not available yet.');
+      setError('Unable to load content. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData(); // initial load
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -43,55 +45,78 @@ export default function ContentBrowser() {
   };
 
   return (
-    <section className="browser">
-      <div className="card section">
-        <h2 className="section-title">Content Library</h2>
-        <form className="filters" onSubmit={onSearch}>
-          <input
-            className="input search-input"
-            placeholder="Search content..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <select
-            className="type-filter"
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-          >
-            <option value="all">All types</option>
-            <option value="article">Articles</option>
-            <option value="video">Videos</option>
-            <option value="pdf">Documents</option>
-            <option value="image">Images</option>
-          </select>
-          <button className="btn" type="submit">Apply</button>
-        </form>
+    <div className="content-browser-page">
+      <div className="browser-header">
+        <h1>Content Library</h1>
+        <p className="browser-subtitle">
+          Browse notices, jobs, and skills from your community.
+        </p>
       </div>
 
-      <div className="list">
-        {loading && <div className="card section">Loading…</div>}
+      <div className="browser-search-bar">
+        <input
+          type="search"
+          className="browser-search-input"
+          placeholder="Search content..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        <select
+          className="browser-type-filter"
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+        >
+          <option value="all">All types</option>
+          <option value="notice">Notices</option>
+          <option value="job">Jobs</option>
+          <option value="skill">Skills</option>
+        </select>
+        <button className="browser-apply-btn" onClick={onSearch}>
+          Apply
+        </button>
+      </div>
 
-        {!loading && error && (
-          <div className="card section empty">{error}</div>
-        )}
+      {loading && (
+        <div className="browser-loading">Loading content...</div>
+      )}
 
-        {!loading && !error && items.length === 0 && (
-          <div className="card section empty">
-            No results. Adjust your filters and try again.
-          </div>
-        )}
+      {!loading && error && (
+        <div className="browser-empty">
+          <p>{error}</p>
+        </div>
+      )}
 
-        {!loading && !error && items.map((it) => (
-          <div key={it.id || `${it.title}-${it.type}`} className="card section item">
-            <h3>{it.title || 'Untitled'}</h3>
-            <div className="meta">
-              {it.type ? it.type.toUpperCase() : 'UNKNOWN'}
-              {it.size ? ` • ${it.size}` : ''}
-              {it.cached ? ` • Cached` : ''}
+      {!loading && !error && items.length === 0 && (
+        <div className="browser-empty">
+          <p>No content found. Try adjusting your filters.</p>
+        </div>
+      )}
+
+      {!loading && !error && items.length > 0 && (
+        <div className="browser-list">
+          {items.map((it) => (
+            <div key={it.id} className="browser-item">
+              <div className="browser-item-content">
+                <h3 className="browser-item-title">
+                  {it.title || 'Untitled'}
+                </h3>
+                {it.description && (
+                  <p className="browser-item-description">
+                    {it.description.substring(0, 150)}
+                    {it.description.length > 150 ? '...' : ''}
+                  </p>
+                )}
+                <div className="browser-item-meta">
+                  <span className="browser-item-type">
+                    {it.type ? it.type.toUpperCase() : 'UNKNOWN'}
+                  </span>
+                  {it.cached && <span className="cached-badge">• Cached</span>}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </section>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

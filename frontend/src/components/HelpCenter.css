@@ -1,0 +1,119 @@
+/* frontend/src/components/HelpCenter.css */
+
+.help-center-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+.help-header {
+  margin-bottom: 32px;
+}
+
+.help-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0b1f34;
+  margin: 0 0 8px 0;
+}
+
+.help-subtitle {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+}
+
+.help-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.help-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.help-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0b1f34;
+  margin: 0 0 16px 0;
+}
+
+.help-section p {
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+.help-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+}
+
+.help-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+  font-size: 15px;
+}
+
+.help-list li:last-child {
+  border-bottom: none;
+}
+
+.help-link {
+  color: #0ea5e9;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.help-link:hover {
+  color: #0284c7;
+  text-decoration: underline;
+}
+
+.help-back-btn {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: #f1f5f9;
+  color: #0b1f34;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.help-back-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .help-center-page {
+    padding: 16px 12px;
+  }
+
+  .help-header h1 {
+    font-size: 24px;
+  }
+
+  .help-subtitle {
+    font-size: 14px;
+  }
+
+  .help-section {
+    padding: 20px 16px;
+  }
+}

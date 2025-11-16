@@ -11,6 +11,7 @@ import ContentBrowser from './components/ContentBrowser.jsx';
 import PerformanceMetrics from './components/PerformanceMetrics.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
 import DirectoryPage from './components/DirectoryPage.jsx';
+import HelpCenter from './components/HelpCenter.jsx'; // NEW - Line 14
 import HeaderBar from './components/home/HeaderBar.jsx';
 import HeroCarousel from './components/home/HeroCarousel.jsx';
 import CategoryRow from './components/home/CategoryRow.jsx';
@@ -176,14 +177,16 @@ function AppContent() {
         </>
       )}
 
+      {/* UPDATED: Community Board - No extra container */}
       {page === 'library' && (
-        <main className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
+        <main style={{ paddingTop: 20, paddingBottom: 80 }}>
           <ContentBrowser />
         </main>
       )}
 
+      {/* UPDATED: Directory - No extra container */}
       {page === 'directory' && (
-        <main className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
+        <main style={{ paddingTop: 20, paddingBottom: 80 }}>
           <DirectoryPage />
         </main>
       )}
@@ -210,15 +213,10 @@ function AppContent() {
         </main>
       )}
 
+      {/* UPDATED: Help Center with new component */}
       {page === 'help' && (
-        <main className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
-          <div className="card section">
-            <h2>Help Center</h2>
-            <p>Coming soon: Emergency contacts, support tickets, and community guides.</p>
-            <button className="btn btn-secondary" onClick={() => setPage('home')}>
-              Back to Home
-            </button>
-          </div>
+        <main style={{ paddingTop: 20, paddingBottom: 80 }}>
+          <HelpCenter onNavigate={setPage} />
         </main>
       )}
 

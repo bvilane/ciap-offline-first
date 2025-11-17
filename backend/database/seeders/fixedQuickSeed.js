@@ -1,5 +1,5 @@
 /**
- * CIAP Database Seeder - Production Ready
+ * CIAP Database Seeder - Production Ready with Images
  */
 
 const sqlite3 = require('sqlite3').verbose();
@@ -69,6 +69,7 @@ function createTables() {
           title TEXT NOT NULL,
           body TEXT,
           contact TEXT,
+          image_url TEXT,
           status TEXT DEFAULT 'approved',
           featured INTEGER DEFAULT 0,
           created_at INTEGER NOT NULL,
@@ -85,6 +86,7 @@ function createTables() {
           location TEXT,
           type TEXT,
           apply_url TEXT,
+          image_url TEXT,
           status TEXT DEFAULT 'approved',
           featured INTEGER DEFAULT 0,
           posted_at INTEGER NOT NULL,
@@ -100,6 +102,7 @@ function createTables() {
           provider TEXT,
           summary TEXT,
           url TEXT,
+          image_url TEXT,
           status TEXT DEFAULT 'approved',
           featured INTEGER DEFAULT 0,
           starts_at INTEGER,
@@ -116,6 +119,7 @@ function createTables() {
           category TEXT,
           phone TEXT,
           website TEXT,
+          image_url TEXT,
           hours TEXT,
           address TEXT,
           created_at INTEGER,
@@ -236,7 +240,7 @@ async function seed() {
     console.log(`✅ Inserted ${users.length} users`);
 
     // ============================================
-    // SEED NOTICES
+    // SEED NOTICES (with community/announcement images)
     // ============================================
     console.log('📢 Inserting notices...');
     const notices = [
@@ -244,6 +248,7 @@ async function seed() {
         title: 'Water Maintenance - Ward 8',
         body: 'Low pressure expected 10:00-13:00. Use water sparingly. Apologies for the inconvenience.',
         contact: 'Municipality: 013-123-4567',
+        image_url: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 1,
@@ -254,6 +259,7 @@ async function seed() {
         title: 'Free Health Screening Saturday',
         body: 'Free blood pressure, diabetes, and HIV screenings at Community Hall, Saturday 09:00-12:00. Bring your ID.',
         contact: 'Health Department: 013-987-6543',
+        image_url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 1,
@@ -264,6 +270,7 @@ async function seed() {
         title: 'Community Meeting - Road Repairs',
         body: 'Discuss upcoming road repairs and budget allocation. Thursday 18:00 at Town Hall. All residents welcome.',
         contact: 'Ward Councillor',
+        image_url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -274,6 +281,7 @@ async function seed() {
         title: 'Load Shedding Schedule Updated',
         body: 'Stage 2 scheduled for Monday & Wednesday 18:00-22:00. Check Eskom app for real-time updates.',
         contact: 'Eskom Hotline: 0860-037-566',
+        image_url: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -284,6 +292,7 @@ async function seed() {
         title: 'School Holiday Program',
         body: 'Free activities for kids aged 6-14 during school holidays. Sports, arts, tutoring. Starts 15 Dec.',
         contact: 'Youth Center: 013-555-7890',
+        image_url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -298,7 +307,7 @@ async function seed() {
     console.log(`✅ Inserted ${notices.length} notices`);
 
     // ============================================
-    // SEED JOBS
+    // SEED JOBS (with workplace/career images)
     // ============================================
     console.log('💼 Inserting jobs...');
     const jobs = [
@@ -309,6 +318,7 @@ async function seed() {
         location: 'Remote',
         type: 'Full-time',
         apply_url: 'https://example.com/apply',
+        image_url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -323,6 +333,7 @@ async function seed() {
         location: 'Acornhoek',
         type: 'Full-time',
         apply_url: 'mailto:jobs@clinic.co.za',
+        image_url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -337,6 +348,7 @@ async function seed() {
         location: 'Remote / Hybrid',
         type: 'Internship',
         apply_url: 'https://techhub.co.za/apply',
+        image_url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 1,
@@ -351,6 +363,7 @@ async function seed() {
         location: 'Acornhoek & Bushbuckridge',
         type: 'Part-time',
         apply_url: 'tel:0131234567',
+        image_url: 'https://images.unsplash.com/photo-1566576721346-d4a3b4eaeb55?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -366,7 +379,7 @@ async function seed() {
     console.log(`✅ Inserted ${jobs.length} jobs`);
 
     // ============================================
-    // SEED SKILLS
+    // SEED SKILLS (with education/learning images)
     // ============================================
     console.log('📚 Inserting skills...');
     const skills = [
@@ -375,6 +388,7 @@ async function seed() {
         summary: 'Self-paced video course for beginners. Learn how to find clients.',
         provider: 'Remote Academy',
         url: 'https://remoteacademy.co.za/freelancing',
+        image_url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 1,
@@ -387,6 +401,7 @@ async function seed() {
         summary: 'Free weekend workshop. Learn social media, SEO, email marketing.',
         provider: 'Community Hub',
         url: 'https://communityhub.org/workshop',
+        image_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -399,6 +414,7 @@ async function seed() {
         summary: 'Learn Microsoft Office basics: Word, Excel, PowerPoint.',
         provider: 'Local Library',
         url: 'tel:0139876543',
+        image_url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 1,
@@ -411,6 +427,7 @@ async function seed() {
         summary: '3-week intensive program on starting a business.',
         provider: 'Small Business Development',
         url: 'mailto:info@sbd.org.za',
+        image_url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop',
         community: COMMUNITY,
         status: 'approved',
         featured: 0,
@@ -426,7 +443,7 @@ async function seed() {
     console.log(`✅ Inserted ${skills.length} skills`);
 
     // ============================================
-    // SEED DIRECTORY
+    // SEED DIRECTORY (with business/storefront images)
     // ============================================
     console.log('🏢 Inserting directory entries...');
     const businesses = [
@@ -436,6 +453,7 @@ async function seed() {
         category: 'Retail',
         phone: '013-111-2222',
         website: 'https://acornhoekstore.co.za',
+        image_url: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&h=300&fit=crop',
         hours: 'Mon-Sat 08:00-18:00, Sun 09:00-14:00',
         address: 'Main Road, Acornhoek',
         community: COMMUNITY,
@@ -448,6 +466,7 @@ async function seed() {
         category: 'Healthcare',
         phone: '013-333-4444',
         website: null,
+        image_url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop',
         hours: 'Mon-Fri 08:00-17:00, Sat 08:00-13:00',
         address: 'Clinic Street, Acornhoek',
         community: COMMUNITY,
@@ -460,6 +479,7 @@ async function seed() {
         category: 'Services',
         phone: '013-555-6666',
         website: null,
+        image_url: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=300&fit=crop',
         hours: '24/7 Emergency',
         address: 'Serves Acornhoek & surrounding areas',
         community: COMMUNITY,
@@ -472,6 +492,7 @@ async function seed() {
         category: 'Education',
         phone: '013-777-8888',
         website: 'https://acornhoekprimary.edu.za',
+        image_url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop',
         hours: 'School hours: 07:30-14:00',
         address: 'School Road, Acornhoek',
         community: COMMUNITY,
@@ -484,6 +505,7 @@ async function seed() {
         category: 'Food & Dining',
         phone: '072-123-4567',
         website: null,
+        image_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop',
         hours: 'Mon-Sun 10:00-20:00',
         address: 'Market Square, Acornhoek',
         community: COMMUNITY,
@@ -496,6 +518,7 @@ async function seed() {
         category: 'Technology',
         phone: '082-987-6543',
         website: null,
+        image_url: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400&h=300&fit=crop',
         hours: 'Mon-Sat 09:00-17:00',
         address: 'Shopping Center, Acornhoek',
         community: COMMUNITY,
@@ -509,8 +532,8 @@ async function seed() {
     }
     console.log(`✅ Inserted ${businesses.length} directory entries`);
 
-    console.log('\n🎉 Seed complete! Your database is ready.');
-    console.log('🔄 Refresh your frontend to see the data.');
+    console.log('\n🎉 Seed complete! Your database is ready with images.');
+    console.log('🔄 Refresh your frontend to see the data with images.');
     console.log('\n📝 Demo Accounts:');
     console.log('   Admin: admin@ciap.local / Admin123!');
     console.log('   Moderator: mod@ciap.local / Mod123!');

@@ -1,5 +1,6 @@
 /**
- * CIAP Backend Server - Fixed Version
+ * CIAP Backend Server - PRODUCTION READY
+ * Fixed: Rate limiting, CORS, Health checks
  */
 
 const path = require('path');
@@ -13,7 +14,7 @@ const config = require('./config');
 const logger = require('./utils/logger');
 const database = require('./database/connection');
 
-// Existing routes you already had
+// Existing routes
 const contentRoutes = require('./routes/contentRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -43,13 +44,14 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// CORS - Allow both CRA (3000) and Vite (5173)
+// ===== FIXED CORS CONFIGURATION =====
 const corsOptions = {
   origin: [
-    'http://localhost:3000',  // Create React App default
+    'http://localhost:3000',  // Create React App
     'http://localhost:5173',  // Vite default
-    'http://localhost:5174',  // Vite alternative port
-    'https://ciap-platform.netlify.app'
+    'http://localhost:5174',  // Vite alternative
+    'https://ciap-platform.netlify.app',  // Production frontend
+    /https:\/\/.*\.netlify\.app$/  // Any Netlify preview URLs
   ],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -69,19 +71,23 @@ app.use(compression());
 // Request logging
 app.use(logger.httpLogger);
 
-// Rate limiting (under /api/)
+// ===== FIXED RATE LIMITING =====
+// More lenient for production, skips health checks
 const limiter = rateLimit({
-  windowMs: config.security.rateLimitWindow,
-  max: config.security.rateLimitMax,
-  message: 'Too many requests from this IP, please try again later.',
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // Much higher for production
+  message: 'Too many requests, please try again later.',
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Skip rate limiting for health checks
+  skip: (req) => req.path === '/health' || req.path === '/api/v1/health'
 });
+
 app.use('/api/', limiter);
 
-// ===== Health Checks =====
+// ===== HEALTH CHECKS (No Rate Limit) =====
 
-// Basic health check (for load balancers, etc.)
+// Basic health check (for Render health checks)
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -115,7 +121,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/metrics', metricsRoutes);
 
-// New MVP routes (mount only if present to avoid boot errors)
+// New MVP routes (mount only if present)
 if (noticesRoutes)      app.use('/api/v1/notices', noticesRoutes);
 if (jobsRoutes)         app.use('/api/v1/jobs', jobsRoutes);
 if (skillsRoutes)       app.use('/api/v1/skills', skillsRoutes);
@@ -178,15 +184,16 @@ async function startServer() {
     logger.info('Database initialized');
 
     // Start HTTP server
-    server = app.listen(config.server.port, () => {
+    const PORT = config.server.port || process.env.PORT || 3001;
+    server = app.listen(PORT, () => {
       logger.info(`🚀 CIAP Backend Server running`, {
-        port: config.server.port,
+        port: PORT,
         environment: config.server.env,
         nodeVersion: process.version
       });
-      logger.info(`📡 API base: http://localhost:${config.server.port}/api/v1`);
-      logger.info(`❤️  Health:  http://localhost:${config.server.port}/health`);
-      logger.info(`🌐 CORS enabled for: localhost:3000, localhost:5173, localhost:5174`);
+      logger.info(`📡 API base: http://localhost:${PORT}/api/v1`);
+      logger.info(`❤️  Health:  http://localhost:${PORT}/health`);
+      logger.info(`🌐 CORS enabled for: localhost:3000, localhost:5173, ciap-platform.netlify.app`);
       logger.info(`🔐 Auth endpoints: /api/v1/auth/login, /api/v1/auth/register`);
       logger.info(`👤 Admin endpoints: /api/v1/admin/*`);
     });

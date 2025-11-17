@@ -34,7 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_community ON users(community);
 
 -- ============================================
--- NOTICES TABLE
+-- NOTICES TABLE (with image support)
 -- ============================================
 CREATE TABLE IF NOT EXISTS notices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS notices (
   title TEXT NOT NULL,
   body TEXT,
   contact TEXT,
+  image_url TEXT,
   status TEXT DEFAULT 'approved',
   featured INTEGER DEFAULT 0,
   created_at INTEGER NOT NULL,
@@ -54,7 +55,7 @@ CREATE INDEX IF NOT EXISTS idx_notices_featured ON notices(featured);
 CREATE INDEX IF NOT EXISTS idx_notices_created ON notices(created_at DESC);
 
 -- ============================================
--- JOBS TABLE
+-- JOBS TABLE (with image support)
 -- ============================================
 CREATE TABLE IF NOT EXISTS jobs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   location TEXT,
   type TEXT,
   apply_url TEXT,
+  image_url TEXT,
   status TEXT DEFAULT 'approved',
   featured INTEGER DEFAULT 0,
   posted_at INTEGER NOT NULL,
@@ -78,7 +80,7 @@ CREATE INDEX IF NOT EXISTS idx_jobs_featured ON jobs(featured);
 CREATE INDEX IF NOT EXISTS idx_jobs_posted ON jobs(posted_at DESC);
 
 -- ============================================
--- SKILLS TABLE
+-- SKILLS TABLE (with image support)
 -- ============================================
 CREATE TABLE IF NOT EXISTS skills (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,6 +89,7 @@ CREATE TABLE IF NOT EXISTS skills (
   provider TEXT,
   summary TEXT,
   url TEXT,
+  image_url TEXT,
   status TEXT DEFAULT 'approved',
   featured INTEGER DEFAULT 0,
   starts_at INTEGER,
@@ -100,7 +103,7 @@ CREATE INDEX IF NOT EXISTS idx_skills_featured ON skills(featured);
 CREATE INDEX IF NOT EXISTS idx_skills_starts ON skills(starts_at DESC);
 
 -- ============================================
--- DIRECTORY TABLE
+-- DIRECTORY TABLE (with image support)
 -- ============================================
 CREATE TABLE IF NOT EXISTS directory (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,6 +113,7 @@ CREATE TABLE IF NOT EXISTS directory (
   category TEXT,
   phone TEXT,
   website TEXT,
+  image_url TEXT,
   hours TEXT,
   address TEXT,
   created_at INTEGER,

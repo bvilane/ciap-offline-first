@@ -1,6 +1,5 @@
 /**
- * CIAP Backend Server
- * CommonJS build, aligns with existing project structure.
+ * CIAP Backend Server - Fixed Version
  */
 
 const path = require('path');
@@ -17,15 +16,16 @@ const database = require('./database/connection');
 // Existing routes you already had
 const contentRoutes = require('./routes/contentRoutes');
 const authRoutes = require('./routes/authRoutes');
-const adminRoutes = require('./routes/adminRoutes'); // NEW: Admin routes
+const adminRoutes = require('./routes/adminRoutes');
 const metricsRoutes = require('./routes/metricsRoutes');
 
-// NEW: MVP community portal routes
-let noticesRoutes, jobsRoutes, skillsRoutes, directoryRoutes;
+// MVP community portal routes
+let noticesRoutes, jobsRoutes, skillsRoutes, directoryRoutes, communitiesRoutes;
 try { noticesRoutes = require('./routes/noticesRoutes'); } catch { noticesRoutes = null; }
 try { jobsRoutes = require('./routes/jobsRoutes'); } catch { jobsRoutes = null; }
 try { skillsRoutes = require('./routes/skillsRoutes'); } catch { skillsRoutes = null; }
 try { directoryRoutes = require('./routes/directoryRoutes'); } catch { directoryRoutes = null; }
+try { communitiesRoutes = require('./routes/communities'); } catch { communitiesRoutes = null; }
 
 // Initialize Express app
 const app = express();
@@ -43,7 +43,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// ✅ FIXED CORS - Allow both CRA (3000) and Vite (5173)
+// CORS - Allow both CRA (3000) and Vite (5173)
 const corsOptions = {
   origin: [
     'http://localhost:3000',  // Create React App default
@@ -78,7 +78,9 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Health checks
+// ===== Health Checks =====
+
+// Basic health check (for load balancers, etc.)
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -87,19 +89,37 @@ app.get('/health', (req, res) => {
     environment: config.server.env
   });
 });
-app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
+
+// Detailed health endpoint for SystemStatus page
+app.get('/api/v1/health', (req, res) => {
+  const uptimeSeconds = Math.floor(process.uptime());
+  const uptimeFormatted = uptimeSeconds > 3600 
+    ? `${Math.floor(uptimeSeconds / 3600)}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`
+    : uptimeSeconds > 60
+    ? `${Math.floor(uptimeSeconds / 60)}m ${uptimeSeconds % 60}s`
+    : `${uptimeSeconds}s`;
+
+  res.json({ 
+    status: 'ok',
+    database: 'connected',
+    uptime: uptimeFormatted,
+    timestamp: new Date().toISOString(),
+    environment: config.server.env
+  });
+});
 
 // ===== API Routes =====
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/admin', adminRoutes); // NEW: Admin routes
+app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/metrics', metricsRoutes);
 
 // New MVP routes (mount only if present to avoid boot errors)
-if (noticesRoutes)   app.use('/api/v1/notices', noticesRoutes);
-if (jobsRoutes)      app.use('/api/v1/jobs', jobsRoutes);
-if (skillsRoutes)    app.use('/api/v1/skills', skillsRoutes);
-if (directoryRoutes) app.use('/api/v1/directory', directoryRoutes);
+if (noticesRoutes)      app.use('/api/v1/notices', noticesRoutes);
+if (jobsRoutes)         app.use('/api/v1/jobs', jobsRoutes);
+if (skillsRoutes)       app.use('/api/v1/skills', skillsRoutes);
+if (directoryRoutes)    app.use('/api/v1/directory', directoryRoutes);
+if (communitiesRoutes)  app.use('/api/v1/communities', communitiesRoutes);
 
 // Static content (uploads)
 app.use('/content', express.static(path.join(__dirname, '../content/uploads')));

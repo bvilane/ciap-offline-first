@@ -7,7 +7,7 @@
   color: #fff;
   padding: 12px 16px;
   border-bottom: 1px solid rgba(255,255,255,.08);
-  display: flex; /* CHANGED: flex instead of grid */
+  display: flex;
   gap: 16px;
   align-items: center;
   position: sticky;
@@ -22,7 +22,7 @@
   align-items: center;
   cursor: pointer;
   transition: opacity 0.2s;
-  flex-shrink: 0; /* Prevent brand from shrinking */
+  flex-shrink: 0;
 }
 .ciap-header__brand:hover {
   opacity: 0.9;
@@ -42,22 +42,22 @@
   font-weight: 800;
   line-height: 1.2;
   font-size: 16px;
-  white-space: nowrap; /* Prevent title wrapping */
+  white-space: nowrap;
 }
 .ciap-brandtext .subtitle {
   font-size: 12px;
   opacity: .8;
   line-height: 1.2;
-  white-space: nowrap; /* Prevent subtitle wrapping */
+  white-space: nowrap;
 }
 
 /* Search Bar */
 .ciap-header__search {
-  flex: 1; /* Take remaining space */
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 0; /* Allow shrinking */
+  min-width: 0;
 }
 
 .ciap-search {
@@ -85,7 +85,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  flex-shrink: 0; /* Prevent actions from shrinking */
+  flex-shrink: 0;
 }
 
 .ciap-select {
@@ -98,7 +98,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s;
-  white-space: nowrap; /* Prevent select from wrapping */
+  white-space: nowrap;
 }
 .ciap-select:hover {
   transform: scale(1.02);
@@ -108,12 +108,12 @@
   outline-offset: 2px;
 }
 
-/* Desktop Navigation - FIXED: No wrapping */
+/* Desktop Navigation */
 .ciap-nav--desktop {
   display: flex;
   gap: 8px;
   align-items: center;
-  flex-wrap: nowrap; /* CRITICAL: Prevent wrapping */
+  flex-wrap: nowrap;
 }
 
 .nav-btn {
@@ -126,7 +126,7 @@
   font-weight: 500;
   border-radius: 6px;
   transition: background 0.2s;
-  white-space: nowrap; /* Prevent button text wrapping */
+  white-space: nowrap;
 }
 .nav-btn:hover {
   background: rgba(255,255,255,.1);
@@ -357,6 +357,23 @@
    RESPONSIVE BREAKPOINTS
    ======================================== */
 
+/* Narrow viewports (DevTools open, split screen) */
+@media (max-width: 1200px) {
+  .ciap-header {
+    gap: 12px;
+  }
+  
+  .ciap-search {
+    max-width: 400px;
+  }
+  
+  /* Shorten nav button text */
+  .nav-btn {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+}
+
 /* Tablet & Below: Show burger, hide desktop nav */
 @media (max-width: 900px) {
   .ciap-nav--desktop {
@@ -366,27 +383,49 @@
   .ciap-burger {
     display: flex;
   }
+  
+  .ciap-search {
+    max-width: 300px;
+  }
+  
+  /* Compact brand on tablet */
+  .ciap-brandtext .title {
+    font-size: 14px;
+  }
+  
+  .ciap-brandtext .subtitle {
+    font-size: 11px;
+  }
 }
 
 /* Mobile: Adjust layout for small screens */
 @media (max-width: 768px) {
   .ciap-header {
-    flex-wrap: wrap; /* Allow wrapping on mobile */
+    flex-wrap: wrap;
     gap: 12px;
   }
   
   .ciap-header__search {
-    order: 3; /* Move search to bottom */
-    flex-basis: 100%; /* Full width */
+    order: 3;
+    flex-basis: 100%;
+  }
+  
+  .ciap-search {
+    max-width: 100%;
   }
   
   .ciap-brandtext .subtitle {
-    display: none; /* Hide subtitle on mobile */
+    display: none;
+  }
+  
+  .ciap-select {
+    font-size: 13px;
+    padding: 6px 10px;
   }
 }
 
-/* Small Mobile */
-@media (max-width: 480px) {
+/* Very narrow (DevTools + small window) */
+@media (max-width: 600px) {
   .ciap-header {
     padding: 10px 12px;
   }
@@ -396,7 +435,23 @@
     height: 32px;
   }
   
+  .ciap-brandtext .title {
+    font-size: 13px;
+  }
+  
+  /* Hide brand text entirely on very small screens */
+  .ciap-brandtext {
+    display: none;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
   .ciap-nav--mobile {
     width: 100%;
+  }
+  
+  .ciap-header__actions {
+    gap: 8px;
   }
 }

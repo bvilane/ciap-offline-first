@@ -1,9 +1,16 @@
 // frontend/src/components/Footer.jsx
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 import './Footer.css';
 
 export default function Footer({ community, onNavigate }) {
+  const { user, isAuthenticated } = useAuth();
   const currentYear = new Date().getFullYear();
+
+  const handleNavigate = (page) => {
+    onNavigate(page);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <footer className="site-footer">
@@ -16,7 +23,7 @@ export default function Footer({ community, onNavigate }) {
               Community Internet Access Platform providing offline-first digital access to underserved communities across South Africa.
             </p>
             <p className="footer-text">
-              Currently serving: <strong>{community}</strong>
+              Currently serving: <strong>{community || 'Acornhoek'}</strong>
             </p>
           </div>
 
@@ -24,10 +31,10 @@ export default function Footer({ community, onNavigate }) {
           <div className="footer-col">
             <h3 className="footer-heading">Explore</h3>
             <ul className="footer-links">
-              <li><button onClick={() => onNavigate('home')}>Home</button></li>
-              <li><button onClick={() => onNavigate('library')}>Community Board</button></li>
-              <li><button onClick={() => onNavigate('directory')}>Local Directory</button></li>
-              <li><button onClick={() => onNavigate('help')}>Help Center</button></li>
+              <li><button onClick={() => handleNavigate('home')}>Home</button></li>
+              <li><button onClick={() => handleNavigate('library')}>Community Board</button></li>
+              <li><button onClick={() => handleNavigate('directory')}>Local Directory</button></li>
+              <li><button onClick={() => handleNavigate('help')}>Help Center</button></li>
             </ul>
           </div>
 
@@ -35,10 +42,10 @@ export default function Footer({ community, onNavigate }) {
           <div className="footer-col">
             <h3 className="footer-heading">Resources</h3>
             <ul className="footer-links">
-              <li><button onClick={() => onNavigate('library')}>Jobs & Opportunities</button></li>
-              <li><button onClick={() => onNavigate('library')}>Skills & Training</button></li>
-              <li><button onClick={() => onNavigate('library')}>Community Notices</button></li>
-              <li><button onClick={() => onNavigate('metrics')}>System Status</button></li>
+              <li><button onClick={() => handleNavigate('library')}>Jobs & Opportunities</button></li>
+              <li><button onClick={() => handleNavigate('library')}>Skills & Training</button></li>
+              <li><button onClick={() => handleNavigate('library')}>Community Notices</button></li>
+              <li><button onClick={() => handleNavigate('system-status')}>System Status</button></li>
             </ul>
           </div>
 
@@ -46,10 +53,15 @@ export default function Footer({ community, onNavigate }) {
           <div className="footer-col">
             <h3 className="footer-heading">Account</h3>
             <ul className="footer-links">
-              <li><button onClick={() => onNavigate('login')}>Sign In</button></li>
-              <li><button onClick={() => onNavigate('admin')}>Admin Dashboard</button></li>
-              <li><button onClick={() => onNavigate('help')}>Support</button></li>
-              <li><button onClick={() => onNavigate('help')}>Contact Us</button></li>
+              <li><button onClick={() => handleNavigate('login')}>Sign In</button></li>
+              
+              {/* ONLY show Admin Dashboard if user is authenticated AND is admin */}
+              {isAuthenticated && user?.role === 'admin' && (
+                <li><button onClick={() => handleNavigate('admin')}>Admin Dashboard</button></li>
+              )}
+              
+              <li><button onClick={() => handleNavigate('support')}>Support</button></li>
+              <li><button onClick={() => handleNavigate('contact')}>Contact Us</button></li>
             </ul>
           </div>
         </div>

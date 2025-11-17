@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthPages.css';
 
-export default function RegisterPage() {
-  const navigate = useNavigate();
+export default function RegisterPage({ onSuccess }) {
   const { register, error: authError } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -22,7 +20,6 @@ export default function RegisterPage() {
       ...prev,
       [name]: value
     }));
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -81,8 +78,9 @@ export default function RegisterPage() {
       );
 
       if (result.success) {
-        // Redirect to home page
-        navigate('/');
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (err) {
       console.error('Registration error:', err);
@@ -188,13 +186,6 @@ export default function RegisterPage() {
               {isSubmitting ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
-
-          <div className="auth-footer">
-            <p>
-              Already have an account?{' '}
-              <Link to="/login">Sign in</Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthPages.css';
 
-export default function LoginPage() {
-  const navigate = useNavigate();
+export default function LoginPage({ onSuccess }) {
   const { login, error: authError } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -20,7 +18,6 @@ export default function LoginPage() {
       ...prev,
       [name]: value
     }));
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -59,11 +56,8 @@ export default function LoginPage() {
       const result = await login(formData.email, formData.password);
 
       if (result.success) {
-        // Redirect based on role
-        if (result.user.role === 'admin' || result.user.role === 'moderator') {
-          navigate('/admin');
-        } else {
-          navigate('/');
+        if (onSuccess) {
+          onSuccess();
         }
       }
     } catch (err) {
@@ -131,13 +125,6 @@ export default function LoginPage() {
               {isSubmitting ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          <div className="auth-footer">
-            <p>
-              Don't have an account?{' '}
-              <Link to="/register">Sign up</Link>
-            </p>
-          </div>
 
           <div className="demo-credentials">
             <p><strong>Demo Credentials:</strong></p>

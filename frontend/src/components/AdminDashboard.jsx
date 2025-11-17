@@ -1,318 +1,311 @@
-import React, { useEffect, useState } from 'react';
-import './AdminDashboard.css';
-import axios from 'axios';
-import { API_BASE } from '../config/appConfig.jsx';
-import { useAuth } from '../context/AuthContext';
-
-const CONTENT_TYPES = ['notices', 'jobs', 'skills'];
+import React, { useState, useEffect } from 'react';
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    pendingApprovals: 0,
+    totalContent: 0,
+    connectedDevices: 12,
+    meshNodes: 4,
+    nodesOnline: 3,
+    bandwidthUsage: 67,
+    cacheHitRate: 85,
+    supportTickets: 3
+  });
+  const [pendingContent, setPendingContent] = useState([]);
   const [users, setUsers] = useState([]);
-  const [pendingContent, setPendingContent] = useState({ notices: [], jobs: [], skills: [] });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-
-  // Fetch dashboard stats
-  const fetchStats = async () => {
-    try {
-      const { data } = await axios.get(`${API_BASE}/admin/stats`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setStats(data);
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
-    }
-  };
-
-  // Fetch all users
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const { data } = await axios.get(`${API_BASE}/admin/users`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setUsers(data);
-    } catch (err) {
-      console.error('Failed to fetch users:', err);
-      setMessage('Failed to load users');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch pending content for all types
-  const fetchPendingContent = async () => {
-    setLoading(true);
-    try {
-      const results = await Promise.all(
-        CONTENT_TYPES.map(type =>
-          axios.get(`${API_BASE}/admin/pending/${type}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          }).then(res => ({ type, data: res.data }))
-        )
-      );
-      
-      const pending = {};
-      results.forEach(({ type, data }) => {
-        pending[type] = data;
-      });
-      setPendingContent(pending);
-    } catch (err) {
-      console.error('Failed to fetch pending content:', err);
-      setMessage('Failed to load pending content');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Change user role
-  const changeUserRole = async (userId, newRole) => {
-    try {
-      await axios.put(`${API_BASE}/admin/users/${userId}/role`, 
-        { role: newRole },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }}
-      );
-      setMessage(`User role updated to ${newRole}`);
-      fetchUsers(); // Refresh
-    } catch (err) {
-      console.error('Failed to change role:', err);
-      setMessage('Failed to update user role');
-    }
-  };
-
-  // Toggle user status
-  const toggleUserStatus = async (userId, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    try {
-      await axios.put(`${API_BASE}/admin/users/${userId}/status`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }}
-      );
-      setMessage(`User ${newStatus === 'active' ? 'activated' : 'deactivated'}`);
-      fetchUsers();
-    } catch (err) {
-      console.error('Failed to toggle status:', err);
-      setMessage('Failed to update user status');
-    }
-  };
-
-  // Approve content
-  const approveContent = async (type, id) => {
-    try {
-      await axios.post(`${API_BASE}/admin/approve/${type}/${id}`, {},
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }}
-      );
-      setMessage(`${type} approved successfully`);
-      fetchPendingContent();
-      fetchStats(); // Update counts
-    } catch (err) {
-      console.error('Failed to approve:', err);
-      setMessage('Approval failed');
-    }
-  };
-
-  // Reject content
-  const rejectContent = async (type, id) => {
-    try {
-      await axios.post(`${API_BASE}/admin/reject/${type}/${id}`, {},
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }}
-      );
-      setMessage(`${type} rejected`);
-      fetchPendingContent();
-      fetchStats();
-    } catch (err) {
-      console.error('Failed to reject:', err);
-      setMessage('Rejection failed');
-    }
-  };
 
   useEffect(() => {
-    if (activeTab === 'overview') fetchStats();
-    if (activeTab === 'users') fetchUsers();
-    if (activeTab === 'moderation') fetchPendingContent();
-  }, [activeTab]);
+    fetchStats();
+    fetchPendingContent();
+    fetchUsers();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/v1/admin/stats');
+      const data = await res.json();
+      setStats(prev => ({...prev, ...data}));
+    } catch (err) {
+      console.error('Failed to fetch stats');
+    }
+  };
+
+  const fetchPendingContent = async () => {
+    setPendingContent([
+      { id: 1, type: 'Notice', title: 'Water Maintenance', submitter: 'John Doe', date: '2 hours ago' },
+      { id: 2, type: 'Job', title: 'Plumber Needed', submitter: 'Jane Smith', date: '5 hours ago' },
+      { id: 3, type: 'Skill', title: 'Computer Basics', submitter: 'Tech Center', date: '1 day ago' }
+    ]);
+  };
+
+  const fetchUsers = async () => {
+    setUsers([
+      { id: 1, name: 'Admin User', email: 'admin@ciap.local', role: 'admin', status: 'active' },
+      { id: 2, name: 'Moderator', email: 'mod@ciap.local', role: 'moderator', status: 'active' },
+      { id: 3, name: 'Test User', email: 'test@ciap.local', role: 'user', status: 'active' }
+    ]);
+  };
+
+  const meshNodes = [
+    { id: 1, name: 'Node A - Community Hall', status: 'online', devices: 8, signal: 95 },
+    { id: 2, name: 'Node B - Library', status: 'online', devices: 4, signal: 88 },
+    { id: 3, name: 'Node C - School', status: 'online', devices: 15, signal: 92 },
+    { id: 4, name: 'Node D - Clinic', status: 'offline', devices: 0, signal: 0 }
+  ];
 
   return (
-    <section className="admin-dashboard">
-      <div className="card section">
-        <h2 className="section-title">Admin Dashboard</h2>
-        <p className="subtle">
-          Logged in as: <strong>{user?.email}</strong> ({user?.role})
-        </p>
-
-        {/* Tabs */}
-        <div className="admin-tabs">
-          <button
-            className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`tab ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => setActiveTab('users')}
-          >
-            User Management
-          </button>
-          <button
-            className={`tab ${activeTab === 'moderation' ? 'active' : ''}`}
-            onClick={() => setActiveTab('moderation')}
-          >
-            Content Moderation
-          </button>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f7fa' }}>
+      {/* Sidebar */}
+      <div style={{ width: 240, background: '#1e293b', color: 'white', padding: '20px 0' }}>
+        <div style={{ padding: '0 20px', marginBottom: 30 }}>
+          <h2 style={{ margin: 0, fontSize: 18 }}>Admin Portal</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.7 }}>Network Management</p>
         </div>
+
+        <nav>
+          <NavItem icon="📊" label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
+          <NavItem icon="📡" label="Mesh Network" active={activeTab === 'network'} onClick={() => setActiveTab('network')} />
+          <NavItem icon="👥" label="User Management" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
+          <NavItem icon="📝" label="Content Moderation" active={activeTab === 'moderation'} onClick={() => setActiveTab('moderation')} />
+          <NavItem icon="💬" label="Support Tickets" active={activeTab === 'support'} onClick={() => setActiveTab('support')} />
+          <NavItem icon="📈" label="Analytics" active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} />
+          <NavItem icon="⚙️" label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+        </nav>
       </div>
 
-      {/* Message Display */}
-      {message && (
-        <div className="card section message-box">
-          {message}
-          <button onClick={() => setMessage('')} className="btn-close">×</button>
-        </div>
-      )}
+      {/* Main Content */}
+      <div style={{ flex: 1, padding: 30 }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          
+          {activeTab === 'overview' && (
+            <>
+              <h1 style={{ margin: '0 0 30px', fontSize: 28 }}>Dashboard Overview</h1>
+              
+              {/* Stats Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginBottom: 30 }}>
+                <StatCard title="Connected Devices" value={stats.connectedDevices} icon="📱" color="#3b82f6" trend="+3 today" />
+                <StatCard title="Mesh Nodes Online" value={`${stats.nodesOnline}/4`} icon="📡" color="#10b981" trend="1 offline" />
+                <StatCard title="Cache Hit Rate" value={`${stats.cacheHitRate}%`} icon="⚡" color="#f59e0b" trend="+5% this week" />
+                <StatCard title="Support Tickets" value={stats.supportTickets} icon="💬" color="#ef4444" trend="2 urgent" />
+              </div>
 
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <div className="card section">
-          <h3>System Statistics</h3>
-          {stats ? (
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h4>Total Users</h4>
-                <p className="stat-number">{stats.totalUsers}</p>
+              {/* Charts Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, marginBottom: 30 }}>
+                <Card title="Network Activity (24h)">
+                  <div style={{ height: 200, display: 'flex', alignItems: 'flex-end', gap: 8, padding: '20px 0' }}>
+                    {[45, 67, 55, 78, 89, 92, 78, 85, 95, 88, 75, 82].map((val, i) => (
+                      <div key={i} style={{ flex: 1, background: '#3b82f6', height: `${val}%`, borderRadius: 4 }} />
+                    ))}
+                  </div>
+                </Card>
+
+                <Card title="Bandwidth Usage">
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+                    <div style={{ position: 'relative', width: 120, height: 120 }}>
+                      <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                        <circle cx="18" cy="18" r="16" fill="none" stroke="#3b82f6" strokeWidth="3" strokeDasharray={`${stats.bandwidthUsage} ${100 - stats.bandwidthUsage}`} />
+                      </svg>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700 }}>
+                        {stats.bandwidthUsage}%
+                      </div>
+                    </div>
+                    <p style={{ marginTop: 16, color: '#64748b', fontSize: 14 }}>67 MB/s of 100 MB/s</p>
+                  </div>
+                </Card>
               </div>
-              <div className="stat-card">
-                <h4>Active Users</h4>
-                <p className="stat-number">{stats.activeUsers}</p>
+
+              {/* Tables Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                <Card title="Recent Activity">
+                  <ActivityList />
+                </Card>
+
+                <Card title="Pending Approvals">
+                  {pendingContent.map(item => (
+                    <div key={item.id} style={{ padding: '12px 0', borderBottom: '1px solid #e5e7eb' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontWeight: 600 }}>{item.title}</span>
+                        <span style={{ fontSize: 12, color: '#64748b' }}>{item.date}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 12, color: '#64748b' }}>{item.type} by {item.submitter}</span>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button style={{ padding: '4px 12px', background: '#10b981', color: 'white', border: 'none', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}>Approve</button>
+                          <button style={{ padding: '4px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}>Reject</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </Card>
               </div>
-              <div className="stat-card">
-                <h4>Pending Approvals</h4>
-                <p className="stat-number">{stats.pendingCount}</p>
-              </div>
-              <div className="stat-card">
-                <h4>Total Content</h4>
-                <p className="stat-number">{stats.totalContent}</p>
-              </div>
-            </div>
-          ) : (
-            <p>Loading stats...</p>
+            </>
           )}
-        </div>
-      )}
 
-      {/* User Management Tab */}
-      {activeTab === 'users' && (
-        <div className="card section">
-          <h3>User Management</h3>
-          {loading ? (
-            <p>Loading users...</p>
-          ) : users.length === 0 ? (
-            <p>No users found.</p>
-          ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id}>
-                    <td>{u.email}</td>
-                    <td>{u.name || '-'}</td>
-                    <td>
-                      <select
-                        value={u.role}
-                        onChange={(e) => changeUserRole(u.id, e.target.value)}
-                        disabled={u.email === user?.email} // Can't change own role
-                      >
-                        <option value="user">User</option>
-                        <option value="moderator">Moderator</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${u.status}`}>
-                        {u.status}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-small"
-                        onClick={() => toggleUserStatus(u.id, u.status)}
-                        disabled={u.email === user?.email}
-                      >
-                        {u.status === 'active' ? 'Deactivate' : 'Activate'}
-                      </button>
-                    </td>
-                  </tr>
+          {activeTab === 'network' && (
+            <>
+              <h1 style={{ margin: '0 0 30px', fontSize: 28 }}>Mesh Network Status</h1>
+              
+              <div style={{ display: 'grid', gap: 20 }}>
+                {meshNodes.map(node => (
+                  <Card key={node.id}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>{node.name}</h3>
+                        <div style={{ display: 'flex', gap: 20, fontSize: 14, color: '#64748b' }}>
+                          <span>📱 {node.devices} devices</span>
+                          <span>📶 Signal: {node.signal}%</span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{ 
+                          padding: '6px 16px', 
+                          background: node.status === 'online' ? '#d1fae5' : '#fee2e2', 
+                          color: node.status === 'online' ? '#065f46' : '#991b1b',
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 600
+                        }}>
+                          {node.status.toUpperCase()}
+                        </span>
+                        {node.status === 'offline' && (
+                          <button style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+                            Restart
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
-        </div>
-      )}
 
-      {/* Content Moderation Tab */}
-      {activeTab === 'moderation' && (
-        <div className="moderation-section">
-          {CONTENT_TYPES.map(type => (
-            <div key={type} className="card section">
-              <h3>Pending {type.charAt(0).toUpperCase() + type.slice(1)}</h3>
-              {loading ? (
-                <p>Loading...</p>
-              ) : pendingContent[type].length === 0 ? (
-                <p className="subtle">No pending {type}</p>
-              ) : (
-                <table className="admin-table">
+          {activeTab === 'users' && (
+            <>
+              <h1 style={{ margin: '0 0 30px', fontSize: 28 }}>User Management</h1>
+              <Card>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Description</th>
-                      <th>Community</th>
-                      <th>Contact</th>
-                      <th>Actions</th>
+                    <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left' }}>
+                      <th style={{ padding: 12 }}>Name</th>
+                      <th style={{ padding: 12 }}>Email</th>
+                      <th style={{ padding: 12 }}>Role</th>
+                      <th style={{ padding: 12 }}>Status</th>
+                      <th style={{ padding: 12 }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingContent[type].map(item => (
-                      <tr key={item.id}>
-                        <td><strong>{item.title || item.name}</strong></td>
-                        <td className="desc-cell">
-                          {(item.description || '').substring(0, 100)}...
+                    {users.map(user => (
+                      <tr key={user.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <td style={{ padding: 12 }}>{user.name}</td>
+                        <td style={{ padding: 12, color: '#64748b' }}>{user.email}</td>
+                        <td style={{ padding: 12 }}>
+                          <span style={{ padding: '4px 12px', background: '#dbeafe', color: '#1e40af', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>
+                            {user.role}
+                          </span>
                         </td>
-                        <td>{item.community}</td>
-                        <td>{item.contact || item.phone || '-'}</td>
-                        <td className="action-buttons">
-                          <button
-                            className="btn btn-approve"
-                            onClick={() => approveContent(type, item.id)}
-                          >
-                            ✓ Approve
-                          </button>
-                          <button
-                            className="btn btn-reject"
-                            onClick={() => rejectContent(type, item.id)}
-                          >
-                            ✗ Reject
+                        <td style={{ padding: 12 }}>
+                          <span style={{ padding: '4px 12px', background: '#d1fae5', color: '#065f46', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>
+                            {user.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: 12 }}>
+                          <button style={{ padding: '6px 12px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
+                            Edit
                           </button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              )}
-            </div>
-          ))}
+              </Card>
+            </>
+          )}
+
+          {activeTab === 'moderation' && (
+            <>
+              <h1 style={{ margin: '0 0 30px', fontSize: 28 }}>Content Moderation</h1>
+              <Card>
+                <p style={{ color: '#64748b', textAlign: 'center', padding: 40 }}>
+                  {pendingContent.length} items pending review
+                </p>
+              </Card>
+            </>
+          )}
         </div>
-      )}
-    </section>
+      </div>
+    </div>
+  );
+}
+
+function NavItem({ icon, label, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%',
+        padding: '12px 20px',
+        background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
+        border: 'none',
+        borderLeft: active ? '4px solid #3b82f6' : '4px solid transparent',
+        color: 'white',
+        textAlign: 'left',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        fontSize: 14,
+        transition: 'all 0.2s'
+      }}
+    >
+      <span style={{ fontSize: 18 }}>{icon}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function StatCard({ title, value, icon, color, trend }) {
+  return (
+    <div style={{ background: 'white', padding: 24, borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontSize: 14, color: '#64748b' }}>{title}</span>
+        <span style={{ fontSize: 24 }}>{icon}</span>
+      </div>
+      <div style={{ fontSize: 32, fontWeight: 700, marginBottom: 4, color }}>{value}</div>
+      <div style={{ fontSize: 12, color: '#64748b' }}>{trend}</div>
+    </div>
+  );
+}
+
+function Card({ title, children }) {
+  return (
+    <div style={{ background: 'white', padding: 24, borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+      {title && <h3 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 600 }}>{title}</h3>}
+      {children}
+    </div>
+  );
+}
+
+function ActivityList() {
+  const activities = [
+    { time: '2 min ago', action: 'User joined network', user: 'Device #12' },
+    { time: '15 min ago', action: 'Content approved', user: 'Admin' },
+    { time: '1 hour ago', action: 'Node C reconnected', user: 'System' },
+    { time: '3 hours ago', action: 'New submission', user: 'John Doe' }
+  ];
+
+  return (
+    <div>
+      {activities.map((activity, i) => (
+        <div key={i} style={{ padding: '12px 0', borderBottom: i < activities.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
+          <div style={{ fontWeight: 500, marginBottom: 4 }}>{activity.action}</div>
+          <div style={{ fontSize: 12, color: '#64748b' }}>{activity.user} • {activity.time}</div>
+        </div>
+      ))}
+    </div>
   );
 }

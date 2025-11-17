@@ -11,7 +11,8 @@ import ContentBrowser from './components/ContentBrowser.jsx';
 import PerformanceMetrics from './components/PerformanceMetrics.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
 import DirectoryPage from './components/DirectoryPage.jsx';
-import HelpCenter from './components/HelpCenter.jsx'; // NEW - Line 14
+import HelpCenter from './components/HelpCenter.jsx';
+import SystemStatus from './components/SystemStatus.jsx';
 import HeaderBar from './components/home/HeaderBar.jsx';
 import HeroCarousel from './components/home/HeroCarousel.jsx';
 import CategoryRow from './components/home/CategoryRow.jsx';
@@ -23,7 +24,6 @@ import DirectoryPreview from './components/home/DirectoryPreview.jsx';
 import EventsSection from './components/home/EventsSection.jsx';
 import SubmitForm from './components/SubmitForm.jsx';
 
-// Auth pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
@@ -51,7 +51,6 @@ function AppContent() {
 
   const apiUrl = useMemo(() => API_BASE, []);
 
-  // Handle "View All" clicks from sections
   const handleViewAll = (section) => {
     if (section === 'jobs' || section === 'skills' || section === 'notices') {
       setPage('library');
@@ -62,7 +61,6 @@ function AppContent() {
     }
   };
 
-  // Handle category selection from CategoryRow
   const handleCategorySelect = (target, key) => {
     if (target === 'directory') {
       setPage('directory');
@@ -79,7 +77,6 @@ function AppContent() {
     }
   };
 
-  // Handle submit content
   const handleSubmit = (type = 'notices') => {
     setSubmitType(type);
     setShowSubmitModal(true);
@@ -152,7 +149,6 @@ function AppContent() {
             onViewAll={handleViewAll}
           />
 
-          {/* Floating Action Button - Submit Content */}
           <div className="fab-container">
             <button 
               className="fab" 
@@ -163,7 +159,6 @@ function AppContent() {
             </button>
           </div>
 
-          {/* Dev Mode Footer */}
           {import.meta.env.DEV && (
             <footer className="container" style={{ marginTop: 40, marginBottom: 40 }}>
               <div className="card section" style={{ padding: 16, textAlign: 'center' }}>
@@ -177,14 +172,12 @@ function AppContent() {
         </>
       )}
 
-      {/* UPDATED: Community Board - No extra container */}
       {page === 'library' && (
         <main style={{ paddingTop: 20, paddingBottom: 80 }}>
           <ContentBrowser />
         </main>
       )}
 
-      {/* UPDATED: Directory - No extra container */}
       {page === 'directory' && (
         <main style={{ paddingTop: 20, paddingBottom: 80 }}>
           <DirectoryPage />
@@ -198,25 +191,117 @@ function AppContent() {
       )}
 
       {page === 'admin' && (
-        <main className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
+        <>
           {isAuthenticated && (user?.role === 'admin' || user?.role === 'moderator') ? (
-            <AdminDashboard />
+            <AdminDashboard onNavigate={setPage} />
           ) : (
-            <div className="card section">
-              <h2>Access Denied</h2>
-              <p>You need admin or moderator privileges to access this page.</p>
-              <button className="btn btn-primary" onClick={() => setPage('login')}>
-                Log In
-              </button>
-            </div>
+            <main className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
+              <div className="card section">
+                <h2>Access Denied</h2>
+                <p>You need admin or moderator privileges to access this page.</p>
+                <button className="btn btn-primary" onClick={() => setPage('login')}>
+                  Log In
+                </button>
+              </div>
+            </main>
           )}
-        </main>
+        </>
       )}
 
-      {/* UPDATED: Help Center with new component */}
       {page === 'help' && (
         <main style={{ paddingTop: 20, paddingBottom: 80 }}>
           <HelpCenter onNavigate={setPage} />
+        </main>
+      )}
+
+      {page === 'system-status' && (
+        <main style={{ paddingTop: 20, paddingBottom: 80 }}>
+          <SystemStatus onNavigate={setPage} />
+        </main>
+      )}
+
+      {page === 'support' && (
+        <main className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
+          <div className="card section">
+            <h1>Support</h1>
+            <h2>Frequently Asked Questions</h2>
+            
+            <div style={{ marginTop: 20 }}>
+              <h3>How do I submit content?</h3>
+              <p>Click the "+ Submit Content" button on the home page or Community Board.</p>
+              
+              <h3>How do I access content offline?</h3>
+              <p>Visit pages while online - they will be cached automatically for offline access.</p>
+              
+              <h3>Who can approve submissions?</h3>
+              <p>Community moderators and administrators review all submissions.</p>
+              
+              <h3>Need more help?</h3>
+              <p>
+                Visit the{' '}
+                <button 
+                  onClick={() => setPage('help')} 
+                  style={{
+                    color: '#2563eb', 
+                    textDecoration: 'underline', 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    fontSize: 'inherit',
+                    padding: 0
+                  }}
+                >
+                  Help Center
+                </button>
+                {' '}or contact your local CIAP administrator.
+              </p>
+            </div>
+            
+            <button onClick={() => setPage('home')} className="btn btn-primary" style={{ marginTop: 20 }}>
+              ← Back to Home
+            </button>
+          </div>
+        </main>
+      )}
+
+      {page === 'contact' && (
+        <main className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
+          <div className="card section">
+            <h1>Contact Us</h1>
+            
+            <div style={{ marginTop: 20 }}>
+              <h3>CIAP Community Platform</h3>
+              <p><strong>Email:</strong> support@ciap.local</p>
+              <p><strong>Phone:</strong> +27 XX XXX XXXX</p>
+              <p><strong>Office Hours:</strong> Monday - Friday, 9:00 AM - 5:00 PM</p>
+              
+              <h3 style={{ marginTop: 30 }}>Local Administrator</h3>
+              <p>For technical support or content moderation inquiries, contact your local CIAP administrator at {community}.</p>
+              
+              <h3 style={{ marginTop: 30 }}>Emergency Contact</h3>
+              <p>
+                For urgent technical issues affecting community access, visit the{' '}
+                <button 
+                  onClick={() => setPage('help')} 
+                  style={{
+                    color: '#2563eb', 
+                    textDecoration: 'underline', 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    fontSize: 'inherit',
+                    padding: 0
+                  }}
+                >
+                  Help Center
+                </button>.
+              </p>
+            </div>
+            
+            <button onClick={() => setPage('home')} className="btn btn-primary" style={{ marginTop: 20 }}>
+              ← Back to Home
+            </button>
+          </div>
         </main>
       )}
 
@@ -228,7 +313,6 @@ function AppContent() {
         <RegisterPage onSuccess={() => setPage('home')} />
       )}
 
-      {/* Submit Form Modal */}
       {showSubmitModal && (
         <SubmitForm
           type={submitType}
@@ -237,8 +321,8 @@ function AppContent() {
         />
       )}
 
-      <Footer community={community} onNavigate={setPage} />
-      <BottomNav active={page} onNavigate={setPage} />
+      {page !== 'admin' && <Footer community={community} onNavigate={setPage} />}
+      {page !== 'admin' && <BottomNav active={page} onNavigate={setPage} />}
     </div>
   );
 }

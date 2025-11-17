@@ -1,7 +1,10 @@
--- CIAP Database Schema
--- Run: sqlite3 database/ciap.sqlite < database/schema.sql
+-- CIAP Complete Database Schema
+-- SQLite database for Community Internet Access Platform
+-- Run: sqlite3 database/ciap.db < database/schema.sql
 
--- Communities Table
+-- ============================================
+-- COMMUNITIES TABLE
+-- ============================================
 CREATE TABLE IF NOT EXISTS communities (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   slug TEXT UNIQUE NOT NULL,
@@ -9,7 +12,28 @@ CREATE TABLE IF NOT EXISTS communities (
   created_at INTEGER NOT NULL
 );
 
--- Notices Table
+CREATE INDEX IF NOT EXISTS idx_communities_slug ON communities(slug);
+
+-- ============================================
+-- USERS TABLE (Authentication)
+-- ============================================
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'user',
+  community TEXT NOT NULL DEFAULT 'Acornhoek',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_community ON users(community);
+
+-- ============================================
+-- NOTICES TABLE
+-- ============================================
 CREATE TABLE IF NOT EXISTS notices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   community TEXT NOT NULL DEFAULT 'Acornhoek',
@@ -27,7 +51,9 @@ CREATE INDEX IF NOT EXISTS idx_notices_status ON notices(status);
 CREATE INDEX IF NOT EXISTS idx_notices_featured ON notices(featured);
 CREATE INDEX IF NOT EXISTS idx_notices_created ON notices(created_at DESC);
 
--- Jobs Table
+-- ============================================
+-- JOBS TABLE
+-- ============================================
 CREATE TABLE IF NOT EXISTS jobs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   community TEXT NOT NULL DEFAULT 'Acornhoek',
@@ -49,7 +75,9 @@ CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_featured ON jobs(featured);
 CREATE INDEX IF NOT EXISTS idx_jobs_posted ON jobs(posted_at DESC);
 
--- Skills Table
+-- ============================================
+-- SKILLS TABLE
+-- ============================================
 CREATE TABLE IF NOT EXISTS skills (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   community TEXT NOT NULL DEFAULT 'Acornhoek',
@@ -69,7 +97,9 @@ CREATE INDEX IF NOT EXISTS idx_skills_status ON skills(status);
 CREATE INDEX IF NOT EXISTS idx_skills_featured ON skills(featured);
 CREATE INDEX IF NOT EXISTS idx_skills_starts ON skills(starts_at DESC);
 
--- Directory Table
+-- ============================================
+-- DIRECTORY TABLE
+-- ============================================
 CREATE TABLE IF NOT EXISTS directory (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   community TEXT NOT NULL DEFAULT 'Acornhoek',

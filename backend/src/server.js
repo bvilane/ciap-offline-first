@@ -49,6 +49,7 @@ const corsOptions = {
     'http://localhost:3000',  // Create React App default
     'http://localhost:5173',  // Vite default
     'http://localhost:5174',  // Vite alternative port
+    'https://ciap-platform.netlify.app'
   ],
   credentials: true,
   optionsSuccessStatus: 200,

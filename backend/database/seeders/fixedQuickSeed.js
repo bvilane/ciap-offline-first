@@ -1,9 +1,5 @@
 /**
  * CIAP Database Seeder - Production Ready
- * Creates all tables and seeds comprehensive demo data
- * Re-runnable: Uses INSERT OR IGNORE to prevent duplicates
- * 
- * Run: node database/seeders/fixedQuickSeed.js
  */
 
 const sqlite3 = require('sqlite3').verbose();
@@ -57,8 +53,10 @@ function createTables() {
         `CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           email TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL,
+          password_hash TEXT NOT NULL,
+          name TEXT,
           role TEXT NOT NULL DEFAULT 'user',
+          status TEXT NOT NULL DEFAULT 'active',
           community TEXT NOT NULL DEFAULT 'Acornhoek',
           created_at INTEGER NOT NULL,
           updated_at INTEGER
@@ -202,24 +200,30 @@ async function seed() {
     const users = [
       {
         email: 'admin@ciap.local',
-        password: await bcrypt.hash('Admin123!', 10),
+        password_hash: await bcrypt.hash('Admin123!', 10),
+        name: 'Admin User',
         role: 'admin',
+        status: 'active',
         community: COMMUNITY,
         created_at: now,
         updated_at: now
       },
       {
         email: 'mod@ciap.local',
-        password: await bcrypt.hash('Mod123!', 10),
+        password_hash: await bcrypt.hash('Mod123!', 10),
+        name: 'Moderator User',
         role: 'moderator',
+        status: 'active',
         community: COMMUNITY,
         created_at: now,
         updated_at: now
       },
       {
         email: 'test@ciap.local',
-        password: await bcrypt.hash('Test123!', 10),
+        password_hash: await bcrypt.hash('Test123!', 10),
+        name: 'Test User',
         role: 'user',
+        status: 'active',
         community: COMMUNITY,
         created_at: now,
         updated_at: now

@@ -20,8 +20,10 @@ CREATE INDEX IF NOT EXISTS idx_communities_slug ON communities(slug);
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  name TEXT,
   role TEXT NOT NULL DEFAULT 'user',
+  status TEXT NOT NULL DEFAULT 'active',
   community TEXT NOT NULL DEFAULT 'Acornhoek',
   created_at INTEGER NOT NULL,
   updated_at INTEGER

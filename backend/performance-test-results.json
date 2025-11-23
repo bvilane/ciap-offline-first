@@ -1,0 +1,126 @@
+{
+  "testDate": "2025-11-20T16:41:17.226Z",
+  "iterations": 10,
+  "results": [
+    {
+      "endpoint": "Health Check",
+      "url": "https://ciap-backend-prod.onrender.com/api/v1/health",
+      "iterations": 10,
+      "average": 300,
+      "min": 210,
+      "max": 614,
+      "measurements": [
+        526,
+        278,
+        224,
+        614,
+        236,
+        251,
+        217,
+        228,
+        210,
+        215
+      ]
+    },
+    {
+      "endpoint": "Communities List",
+      "url": "https://ciap-backend-prod.onrender.com/api/v1/communities",
+      "iterations": 10,
+      "average": 228,
+      "min": 206,
+      "max": 247,
+      "measurements": [
+        243,
+        240,
+        247,
+        243,
+        206,
+        222,
+        216,
+        237,
+        208,
+        218
+      ]
+    },
+    {
+      "endpoint": "Notices (Acornhoek)",
+      "url": "https://ciap-backend-prod.onrender.com/api/v1/notices?community=Acornhoek",
+      "iterations": 10,
+      "average": 233,
+      "min": 212,
+      "max": 282,
+      "measurements": [
+        225,
+        217,
+        226,
+        282,
+        230,
+        232,
+        232,
+        212,
+        246,
+        229
+      ]
+    },
+    {
+      "endpoint": "Jobs (Acornhoek)",
+      "url": "https://ciap-backend-prod.onrender.com/api/v1/jobs?community=Acornhoek",
+      "iterations": 10,
+      "average": 237,
+      "min": 219,
+      "max": 263,
+      "measurements": [
+        243,
+        263,
+        224,
+        236,
+        252,
+        219,
+        225,
+        235,
+        254,
+        222
+      ]
+    },
+    {
+      "endpoint": "Skills (Acornhoek)",
+      "url": "https://ciap-backend-prod.onrender.com/api/v1/skills?community=Acornhoek",
+      "iterations": 10,
+      "average": 230,
+      "min": 221,
+      "max": 243,
+      "measurements": [
+        222,
+        243,
+        243,
+        239,
+        221,
+        230,
+        221,
+        223,
+        227,
+        226
+      ]
+    },
+    {
+      "endpoint": "Directory (Acornhoek)",
+      "url": "https://ciap-backend-prod.onrender.com/api/v1/directory?community=Acornhoek",
+      "iterations": 10,
+      "average": 234,
+      "min": 214,
+      "max": 277,
+      "measurements": [
+        251,
+        225,
+        277,
+        232,
+        231,
+        215,
+        239,
+        230,
+        214,
+        228
+      ]
+    }
+  ]
+}

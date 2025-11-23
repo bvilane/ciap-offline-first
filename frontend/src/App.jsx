@@ -26,6 +26,7 @@ import SubmitForm from './components/SubmitForm.jsx';
 
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 function AppContent() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -311,6 +312,10 @@ function AppContent() {
 
       {page === 'register' && (
         <RegisterPage onSuccess={() => setPage('home')} />
+      )}
+
+      {page === 'privacy-policy' && (
+        <PrivacyPolicyPage onNavigate={setPage} />
       )}
 
       {showSubmitModal && (

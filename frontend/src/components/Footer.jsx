@@ -15,7 +15,10 @@ export default function Footer({ community, onNavigate }) {
   return (
     <footer className="site-footer">
       <div className="container">
+        
+        {/* Footer Grid */}
         <div className="footer-grid">
+
           {/* About Section */}
           <div className="footer-col">
             <h3 className="footer-heading">CIAP</h3>
@@ -49,17 +52,17 @@ export default function Footer({ community, onNavigate }) {
             </ul>
           </div>
 
-          {/* Admin & Account */}
+          {/* Account Section */}
           <div className="footer-col">
             <h3 className="footer-heading">Account</h3>
             <ul className="footer-links">
               <li><button onClick={() => handleNavigate('login')}>Sign In</button></li>
-              
-              {/* ONLY show Admin Dashboard if user is authenticated AND is admin */}
+
+              {/* Admin Dashboard for authenticated admin */}
               {isAuthenticated && user?.role === 'admin' && (
                 <li><button onClick={() => handleNavigate('admin')}>Admin Dashboard</button></li>
               )}
-              
+
               <li><button onClick={() => handleNavigate('support')}>Support</button></li>
               <li><button onClick={() => handleNavigate('contact')}>Contact Us</button></li>
             </ul>
@@ -71,6 +74,13 @@ export default function Footer({ community, onNavigate }) {
           <p className="footer-copyright">
             © {currentYear} CIAP - Community Internet Access Platform. Built for offline-first access.
           </p>
+
+          <div className="footer-links-bottom">
+            <button onClick={() => handleNavigate('privacy-policy')}>Privacy Policy</button>
+            <span className="footer-separator">•</span>
+            <button onClick={() => handleNavigate('contact')}>Contact</button>
+          </div>
+
           <div className="footer-meta">
             <span className="footer-badge">Open Source</span>
             <span className="footer-badge">Offline-First</span>

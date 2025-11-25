@@ -158,9 +158,20 @@ export default function AuthModal({ initialTab = 'login', onClose }) {
               : (activeTab === 'login' ? 'Log In' : 'Sign Up')}
           </button>
 
-          {activeTab === 'login' && (
-            <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: '#64748b' }}>
-              <p><strong>Demo:</strong> admin@ciap.local / Admin123!</p>
+          {/* Only show demo credentials in development mode */}
+          {activeTab === 'login' && import.meta.env.DEV && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: 16, 
+              padding: '12px',
+              fontSize: 12, 
+              color: '#856404',
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffc107',
+              borderRadius: '6px'
+            }}>
+              <p style={{ margin: 0, fontWeight: 600 }}>Development Mode</p>
+              <p style={{ margin: '4px 0 0 0' }}>Demo: admin@ciap.local / Admin123!</p>
             </div>
           )}
         </form>

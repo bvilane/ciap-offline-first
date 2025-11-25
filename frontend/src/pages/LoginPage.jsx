@@ -126,11 +126,35 @@ export default function LoginPage({ onSuccess }) {
             </button>
           </form>
 
-          <div className="demo-credentials">
-            <p><strong>Demo Credentials:</strong></p>
-            <p>Email: admin@ciap.local</p>
-            <p>Password: Admin123!</p>
-          </div>
+          {/* Only show demo credentials in development mode */}
+          {import.meta.env.DEV && (
+            <div className="demo-credentials" style={{
+              marginTop: '20px',
+              padding: '16px',
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffc107',
+              borderRadius: '8px',
+              textAlign: 'center'
+            }}>
+              <p style={{ 
+                margin: '0 0 8px 0', 
+                fontWeight: 600, 
+                color: '#856404',
+                fontSize: '14px'
+              }}>
+                Development Mode Only
+              </p>
+              <p style={{ margin: '4px 0', fontSize: '13px', color: '#664d03' }}>
+                <strong>Demo Credentials:</strong>
+              </p>
+              <p style={{ margin: '4px 0', fontSize: '13px', color: '#664d03' }}>
+                Email: admin@ciap.local
+              </p>
+              <p style={{ margin: '4px 0', fontSize: '13px', color: '#664d03' }}>
+                Password: Admin123!
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,17 +1,39 @@
 // frontend/src/components/home/FeaturedSection.jsx
+// Enhanced with offline caching - Full version maintaining all original features
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './HomeSection.css';
+import cacheManager from '../../utils/cacheManager';
+import useNetworkStatus from '../../hooks/useNetworkStatus';
 
 export default function FeaturedSection({ apiBase, community }) {
+  const { isOnline } = useNetworkStatus();
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fromCache, setFromCache] = useState(false);
 
   useEffect(() => {
     fetchFeatured();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [community]);
 
   const fetchFeatured = async () => {
+    const cacheKey = `featured_${community}`;
+
+    // If offline, try cache first
+    if (!isOnline) {
+      const cached = cacheManager.get(cacheKey);
+      if (cached) {
+        console.log('Using cached featured content');
+        setFeatured(cached);
+        setFromCache(true);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Online: fetch from API
     try {
       setLoading(true);
       
@@ -56,9 +78,25 @@ export default function FeaturedSection({ apiBase, community }) {
       });
 
       // Limit to 6 items
-      setFeatured(items.slice(0, 6));
+      const limitedItems = items.slice(0, 6);
+      
+      // Cache the results
+      cacheManager.set(cacheKey, limitedItems);
+      
+      setFeatured(limitedItems);
+      setFromCache(false);
+      
+      console.log('Featured content fetched and cached');
     } catch (err) {
       console.error('Error fetching featured content:', err);
+      
+      // Try to serve from cache on error
+      const cached = cacheManager.get(cacheKey);
+      if (cached) {
+        console.log('Serving cached featured content after error');
+        setFeatured(cached);
+        setFromCache(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -92,6 +130,11 @@ export default function FeaturedSection({ apiBase, community }) {
           </div>
           <div className="section-empty">
             <p>Featured news and opportunities in {community}</p>
+            {!isOnline && (
+              <p style={{ marginTop: '10px', fontSize: '14px', color: '#64748b' }}>
+                No cached content available. Connect to the internet to load content.
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -124,6 +167,16 @@ export default function FeaturedSection({ apiBase, community }) {
           <div className="section-title">
             <span className="section-icon">🎯</span>
             <h2>What's happening</h2>
+            {fromCache && !isOnline && (
+              <span style={{ 
+                fontSize: '12px', 
+                color: '#f97316', 
+                fontWeight: 600,
+                marginLeft: '12px'
+              }}>
+                OFFLINE
+              </span>
+            )}
           </div>
         </div>
         <p style={{ color: '#6c757d', marginBottom: '24px' }}>
@@ -147,7 +200,12 @@ export default function FeaturedSection({ apiBase, community }) {
                 )}
 
                 <div className="card-content">
-                  <div className="card-badge">{getItemLabel(item)}</div>
+                  <div className="card-badge">
+                    {getItemLabel(item)}
+                    {fromCache && !isOnline && (
+                      <span style={{ marginLeft: '8px', opacity: 0.8 }}>• OFFLINE</span>
+                    )}
+                  </div>
                   <h3 className="card-title">{getItemTitle(item)}</h3>
                   <p className="card-description">{getItemDescription(item)}</p>
                   
@@ -171,7 +229,7 @@ export default function FeaturedSection({ apiBase, community }) {
                     </div>
                   )}
 
-                  {action && (
+                  {action && isOnline && (
                     <a 
                       href={action.url}
                       className="card-button"
@@ -180,6 +238,17 @@ export default function FeaturedSection({ apiBase, community }) {
                     >
                       {action.label}
                     </a>
+                  )}
+                  
+                  {action && !isOnline && (
+                    <button 
+                      className="card-button" 
+                      disabled
+                      style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                      title="Connect to internet to access external links"
+                    >
+                      {action.label} (Offline)
+                    </button>
                   )}
                 </div>
               </div>

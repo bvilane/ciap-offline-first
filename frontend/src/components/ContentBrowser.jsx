@@ -2,37 +2,65 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ContentBrowser.css';
 import { API_BASE } from '../config/appConfig.jsx';
+import cacheManager from '../utils/cacheManager';
+import useNetworkStatus from '../hooks/useNetworkStatus';
 
 const API = API_BASE;
 
 export default function ContentBrowser() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState('');
+  const { isOnline } = useNetworkStatus();
   const [selectedType, setSelectedType] = useState('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const params = {};
-      if (selectedType !== 'all') params.type = selectedType;
-      if (q.trim()) params.search = q.trim();
+const fetchData = async () => {
+  setLoading(true);
+  setError('');
 
-      const url = `${API}/content`;
-      const { data } = await axios.get(url, { params });
-      
-      const contentItems = data?.data || [];
-      setItems(Array.isArray(contentItems) ? contentItems : []);
-    } catch (err) {
-      console.error('Content fetch failed:', err?.response?.status, err?.message);
+  const cacheKey = `content_${selectedType}_${q}`;
+
+  // Try cache if offline
+  if (!isOnline) {
+    const cached = cacheManager.get(cacheKey);
+    if (cached) {
+      setItems(Array.isArray(cached) ? cached : []);
+      setLoading(false);
+      return;
+    }
+  }
+
+  try {
+    const params = {};
+    if (selectedType !== 'all') params.type = selectedType;
+    if (q.trim()) params.search = q.trim();
+
+    const url = `${API}/content`;
+    const { data } = await axios.get(url, { params });
+    
+    const contentItems = data?.data || [];
+    const itemsArray = Array.isArray(contentItems) ? contentItems : [];
+    
+    // Cache the results
+    cacheManager.set(cacheKey, itemsArray);
+    
+    setItems(itemsArray);
+  } catch (err) {
+    console.error('Content fetch failed:', err?.response?.status, err?.message);
+    
+    // Try cache on error
+    const cached = cacheManager.get(cacheKey);
+    if (cached) {
+      setItems(Array.isArray(cached) ? cached : []);
+    } else {
       setItems([]);
       setError('Unable to load content. Please try again.');
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchData();

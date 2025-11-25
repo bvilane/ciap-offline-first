@@ -4,7 +4,7 @@ import './App.css';
 import { COMMUNITY_NAME, ENDPOINTS, API_BASE } from './config/appConfig.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-import OfflineIndicator from './components/OfflineIndicator.jsx';
+import OfflineBanner from './components/OfflineBanner.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import Footer from './components/Footer.jsx';
 import ContentBrowser from './components/ContentBrowser.jsx';
@@ -90,7 +90,8 @@ function AppContent() {
 
   return (
     <div className="App">
-      <OfflineIndicator online={online} />
+      
+      <OfflineBanner isOnline={online} />
 
       <HeaderBar
         brandTitle="CIAP – Community Internet Access Platform"

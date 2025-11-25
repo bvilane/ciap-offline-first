@@ -316,3 +316,17 @@ textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Hide desktop submit button on mobile (< 900px) */
+@media (max-width: 900px) {
+  .fab-container {
+    display: none !important;
+  }
+}
+
+/* Ensure desktop button shows on larger screens */
+@media (min-width: 901px) {
+  .fab-container {
+    display: block;
+  }
+}

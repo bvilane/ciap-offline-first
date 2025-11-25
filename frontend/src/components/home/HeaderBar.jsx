@@ -24,9 +24,9 @@ export default function HeaderBar({
   onLogout
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false); // NEW
-  const [authModalTab, setAuthModalTab] = useState('login'); // NEW
-  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false); // NEW
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState('login');
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
   const handleNavClick = (pageId) => {
     // Handle auth modals
@@ -53,7 +53,7 @@ export default function HeaderBar({
     setAccountDropdownOpen(false);
   };
 
-  // Dynamic nav items (NO login/signup buttons anymore)
+  // Dynamic nav items
   const getNavItems = () => {
     const baseItems = [
       { id: 'home', label: 'Explore' },
@@ -74,7 +74,7 @@ export default function HeaderBar({
   return (
     <>
       <header className="ciap-header">
-        {/* Left: Brand + Logo */}
+        {/* Left: Logo Only */}
         <div 
           className="ciap-header__brand" 
           onClick={() => handleNavClick('home')} 
@@ -84,13 +84,14 @@ export default function HeaderBar({
           <div className="ciap-logo">
             <Logo variant="light" height={28} alt="CIAP logo" />
           </div>
-          <div className="ciap-brandtext">
+          {/* Desktop: Show brand text */}
+          <div className="ciap-brandtext ciap-brandtext--desktop">
             <div className="title">{brandTitle}</div>
             <div className="subtitle">{subtitle}</div>
           </div>
         </div>
 
-        {/* Center: Search Bar */}
+        {/* Desktop: Center Search Bar */}
         <div className="ciap-header__search">
           <input
             className="ciap-search"
@@ -102,10 +103,23 @@ export default function HeaderBar({
           />
         </div>
 
-        {/* Right: Community Selector + Nav + Account */}
-        <div className="ciap-header__actions">
+        {/* Mobile Only: Center Community Selector */}
+        <div className="ciap-header__center">
           <select
-            className="ciap-select"
+            className="ciap-select ciap-select--mobile"
+            value={community}
+            onChange={(e) => onCommunityChange?.(e.target.value)}
+            aria-label="Select community"
+          >
+            {COMMUNITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        {/* Right: Nav + Account + Community (Desktop) + Burger */}
+        <div className="ciap-header__actions">
+          {/* Desktop Community Selector */}
+          <select
+            className="ciap-select ciap-select--desktop"
             value={community}
             onChange={(e) => onCommunityChange?.(e.target.value)}
             aria-label="Select community"
@@ -183,6 +197,18 @@ export default function HeaderBar({
         </div>
       </header>
 
+      {/* Mobile Search Bar (Below Header) */}
+      <div className="ciap-mobile-search">
+        <input
+          className="ciap-search"
+          type="search"
+          placeholder="Search notices, jobs, skills…"
+          value={query || ''}
+          onChange={(e) => onQueryChange?.(e.target.value)}
+          aria-label="Search content"
+        />
+      </div>
+
       {/* Mobile Menu */}
       {menuOpen && (
         <>
@@ -192,6 +218,15 @@ export default function HeaderBar({
             aria-hidden="true"
           ></div>
           <nav className="ciap-nav--mobile" aria-label="Mobile navigation">
+            {/* Close Button Inside Menu */}
+            <button 
+              className="mobile-close-btn"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              ×
+            </button>
+
             {isAuthenticated && (
               <div className="mobile-user-info">
                 <strong>{user?.name || user?.email}</strong>

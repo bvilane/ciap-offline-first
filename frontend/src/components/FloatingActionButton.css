@@ -1,0 +1,56 @@
+/* Floating Action Button */
+.fab-button {
+  position: fixed;
+  bottom: 88px; /* Raised higher above navbar */
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 900;
+  
+  /* Hide on desktop by default */
+  display: none;
+}
+
+.fab-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(14, 165, 233, 0.5);
+}
+
+.fab-button:active {
+  transform: scale(0.95);
+}
+
+.fab-icon {
+  transition: transform 0.3s ease;
+}
+
+.fab-icon--rotated {
+  transform: rotate(45deg);
+}
+
+/* Show FAB only on mobile/tablet */
+@media (max-width: 900px) {
+  .fab-button {
+    display: flex;
+  }
+}
+
+/* Adjust position on smaller screens */
+@media (max-width: 480px) {
+  .fab-button {
+    bottom: 80px; /* More space on small screens */
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+}

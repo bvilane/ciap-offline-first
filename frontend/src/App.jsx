@@ -23,6 +23,7 @@ import NoticesSection from './components/home/NoticesSection.jsx';
 import DirectoryPreview from './components/home/DirectoryPreview.jsx';
 import EventsSection from './components/home/EventsSection.jsx';
 import SubmitForm from './components/SubmitForm.jsx';
+import FloatingActionButton from './components/FloatingActionButton.jsx';
 
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -151,6 +152,7 @@ function AppContent() {
             onViewAll={handleViewAll}
           />
 
+          {/* Desktop Submit Button (original) */}
           <div className="fab-container">
             <button 
               className="fab" 
@@ -160,6 +162,9 @@ function AppContent() {
               + Submit Content
             </button>
           </div>
+
+          {/* Mobile FAB (new - auto-hides on desktop) */}
+          <FloatingActionButton />
 
           {import.meta.env.DEV && (
             <footer className="container" style={{ marginTop: 40, marginBottom: 40 }}>

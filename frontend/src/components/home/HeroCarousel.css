@@ -79,15 +79,29 @@
   border-color: #0b1f34;
 }
 
+/* Navigation Arrows */
 .hero-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
   width: 36px; height: 36px; border-radius: 50%;
   border: none; background: rgba(255,255,255,.9); cursor: pointer;
   display: grid; place-items:center; font-size: 22px; color:#0b1f34;
   z-index: 2;
+  transition: opacity 0.2s, transform 0.2s;
 }
-.hero-nav.left { left: 10px; } .hero-nav.right { right:10px; }
+.hero-nav:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+.hero-nav.left { left: 10px; } 
+.hero-nav.right { right:10px; }
 
+/* Hide arrows on mobile/tablet */
+@media (max-width: 768px) {
+  .hero-nav {
+    display: none;
+  }
+}
+
+/* Dots (pagination) */
 .hero-dots {
   position: absolute; bottom: 10px; left: 0; right:0;
   display:flex; gap:6px; justify-content:center;
@@ -95,5 +109,9 @@
 }
 .dot {
   width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.85); cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.dot:hover {
+  transform: scale(1.2);
 }
 .dot.active { background: #0b1f34; }

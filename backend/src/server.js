@@ -21,12 +21,13 @@ const adminRoutes = require('./routes/adminRoutes');
 const metricsRoutes = require('./routes/metricsRoutes');
 
 // MVP community portal routes
-let noticesRoutes, jobsRoutes, skillsRoutes, directoryRoutes, communitiesRoutes;
+let noticesRoutes, jobsRoutes, skillsRoutes, directoryRoutes, communitiesRoutes, eventsRoutes;
 try { noticesRoutes = require('./routes/noticesRoutes'); } catch { noticesRoutes = null; }
 try { jobsRoutes = require('./routes/jobsRoutes'); } catch { jobsRoutes = null; }
 try { skillsRoutes = require('./routes/skillsRoutes'); } catch { skillsRoutes = null; }
 try { directoryRoutes = require('./routes/directoryRoutes'); } catch { directoryRoutes = null; }
 try { communitiesRoutes = require('./routes/communities'); } catch { communitiesRoutes = null; }
+try { eventsRoutes = require('./routes/eventsRoutes'); } catch { eventsRoutes = null; }
 
 // Initialize Express app
 const app = express();
@@ -127,6 +128,7 @@ if (jobsRoutes)         app.use('/api/v1/jobs', jobsRoutes);
 if (skillsRoutes)       app.use('/api/v1/skills', skillsRoutes);
 if (directoryRoutes)    app.use('/api/v1/directory', directoryRoutes);
 if (communitiesRoutes)  app.use('/api/v1/communities', communitiesRoutes);
+if (eventsRoutes)       app.use('/api/v1/events', eventsRoutes);
 
 // Static content (uploads)
 app.use('/content', express.static(path.join(__dirname, '../content/uploads')));

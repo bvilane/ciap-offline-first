@@ -1,5 +1,5 @@
 /* ========================================
-   CIAP Header - Single Line Layout
+   CIAP Header - Responsive Layout
    ======================================== */
 
 .ciap-header {
@@ -51,9 +51,25 @@
   white-space: nowrap;
 }
 
-/* Search Bar */
-.ciap-header__search {
+/* Center: Community Selector (Mobile Only) */
+.ciap-header__center {
+  display: none; /* Hidden on desktop */
+}
+
+.ciap-select--mobile {
+  min-width: 140px;
   flex: 1;
+  max-width: 200px;
+}
+
+/* Hide mobile selector on desktop */
+.ciap-select--desktop {
+  display: inline-block; /* Show on desktop */
+}
+
+/* Search Bar (Desktop in center, mobile below header) */
+.ciap-header__search {
+  flex: 1; /* Allow it to grow on desktop */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -78,6 +94,19 @@
 }
 .ciap-search::placeholder {
   color: rgba(255,255,255,.75);
+}
+
+/* Mobile Search Bar (Below Header) */
+.ciap-mobile-search {
+  display: none;
+  padding: 8px 16px;
+  background: #0b1f34;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.ciap-mobile-search .ciap-search {
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Actions Section */
@@ -273,7 +302,7 @@
   width: 280px;
   height: 100vh;
   background: #0b1f34;
-  padding: 80px 20px 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -291,11 +320,33 @@
   }
 }
 
+.mobile-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: #fff;
+  font-size: 32px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.2s;
+}
+.mobile-close-btn:hover {
+  background: rgba(255,255,255,.2);
+}
+
 .mobile-user-info {
   padding: 20px;
   background: rgba(255,255,255,.1);
   border-radius: 12px;
-  margin-bottom: 16px;
+  margin: 60px 0 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -367,7 +418,6 @@
     max-width: 400px;
   }
   
-  /* Shorten nav button text */
   .nav-btn {
     padding: 8px 10px;
     font-size: 13px;
@@ -388,7 +438,6 @@
     max-width: 300px;
   }
   
-  /* Compact brand on tablet */
   .ciap-brandtext .title {
     font-size: 14px;
   }
@@ -398,29 +447,41 @@
   }
 }
 
-/* Mobile: Adjust layout for small screens */
+/* Mobile Layout: Logo | Community | Burger */
 @media (max-width: 768px) {
-  .ciap-header {
-    flex-wrap: wrap;
-    gap: 12px;
+  /* Show mobile-specific elements */
+  .ciap-header__center {
+    display: flex; /* Show center section on mobile */
+    flex: 1;
+    justify-content: center;
+    align-items: center;
   }
   
+  .ciap-mobile-search {
+    display: block;
+  }
+  
+  /* Hide desktop elements */
   .ciap-header__search {
-    order: 3;
-    flex-basis: 100%;
+    display: none; /* Hide desktop search */
   }
   
-  .ciap-search {
-    max-width: 100%;
+  .ciap-select--desktop {
+    display: none !important; /* Hide desktop community selector */
   }
   
-  .ciap-brandtext .subtitle {
+  .ciap-brandtext--desktop {
     display: none;
   }
   
-  .ciap-select {
-    font-size: 13px;
-    padding: 6px 10px;
+  /* Adjust header layout */
+  .ciap-header {
+    gap: 8px;
+  }
+  
+  .ciap-header__actions {
+    flex-shrink: 0;
+    gap: 0;
   }
 }
 
@@ -435,13 +496,9 @@
     height: 32px;
   }
   
-  .ciap-brandtext .title {
+  .ciap-select {
     font-size: 13px;
-  }
-  
-  /* Hide brand text entirely on very small screens */
-  .ciap-brandtext {
-    display: none;
+    padding: 6px 10px;
   }
 }
 
@@ -449,9 +506,5 @@
 @media (max-width: 480px) {
   .ciap-nav--mobile {
     width: 100%;
-  }
-  
-  .ciap-header__actions {
-    gap: 8px;
   }
 }

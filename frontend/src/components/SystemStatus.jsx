@@ -8,33 +8,48 @@ export default function SystemStatus({ onNavigate }) {
     database: 'checking',
     cacheHits: 0,
     uptime: 'Loading...',
-    lastSync: 'Never'
+    lastSync: 'Never',
+    environment: 'unknown'
   });
+
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
     
+    console.log('Fetching health from:', `${apiUrl}/health`);
+    
     fetch(`${apiUrl}/health`)
       .then(res => {
-        if (!res.ok) throw new Error('API unreachable');
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
         return res.json();
       })
       .then(data => {
-        setStatus(prev => ({
-          ...prev,
-          apiHealth: 'healthy',
-          database: data.database || 'healthy',
+        console.log('Health check response:', data);
+        
+        // Map backend response to frontend state
+        // Backend returns: { status: "ok", database: "connected", uptime: "50h 18m", ... }
+        setStatus({
+          apiHealth: data.status === 'ok' ? 'healthy' : 'error',
+          database: data.database === 'connected' ? 'healthy' : 'error',
           uptime: data.uptime || 'Unknown',
-          lastSync: new Date().toLocaleString()
-        }));
+          lastSync: new Date().toLocaleString(),
+          environment: data.environment || 'unknown',
+          cacheHits: 0 // Not tracked yet
+        });
+        
+        setError(null);
       })
-      .catch((error) => {
-        console.error('Health check failed:', error);
+      .catch((err) => {
+        console.error('Health check failed:', err);
         setStatus(prev => ({
           ...prev,
           apiHealth: 'error',
           database: 'error'
         }));
+        setError(err.message);
       });
   }, []);
 
@@ -55,24 +70,47 @@ export default function SystemStatus({ onNavigate }) {
           <p>Monitor the health and performance of CIAP services</p>
         </header>
 
+        {error && (
+          <div style={{
+            padding: '12px 16px',
+            marginBottom: '20px',
+            backgroundColor: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            color: '#991b1b'
+          }}>
+            <strong>Connection Error:</strong> {error}
+          </div>
+        )}
+
         <div className="status-grid">
-          <div className={`status-card ${status.apiHealth === 'healthy' ? 'healthy' : status.apiHealth === 'checking' ? 'info' : 'error'}`}>
+          <div className={`status-card ${
+            status.apiHealth === 'healthy' ? 'healthy' : 
+            status.apiHealth === 'checking' ? 'info' : 'error'
+          }`}>
             <div className="status-icon">
-              {status.apiHealth === 'healthy' ? '✓' : status.apiHealth === 'checking' ? '...' : '✗'}
+              {status.apiHealth === 'healthy' ? '✓' : 
+               status.apiHealth === 'checking' ? '...' : '✗'}
             </div>
             <h3>API Server</h3>
             <p className="status-label">
-              {status.apiHealth === 'healthy' ? 'Operational' : status.apiHealth === 'checking' ? 'Checking...' : 'Offline'}
+              {status.apiHealth === 'healthy' ? 'Operational' : 
+               status.apiHealth === 'checking' ? 'Checking...' : 'Offline'}
             </p>
           </div>
 
-          <div className={`status-card ${status.database === 'healthy' ? 'healthy' : status.database === 'checking' ? 'info' : 'error'}`}>
+          <div className={`status-card ${
+            status.database === 'healthy' ? 'healthy' : 
+            status.database === 'checking' ? 'info' : 'error'
+          }`}>
             <div className="status-icon">
-              {status.database === 'healthy' ? '✓' : status.database === 'checking' ? '...' : '✗'}
+              {status.database === 'healthy' ? '✓' : 
+               status.database === 'checking' ? '...' : '✗'}
             </div>
             <h3>Database</h3>
             <p className="status-label">
-              {status.database === 'healthy' ? 'Connected' : status.database === 'checking' ? 'Checking...' : 'Disconnected'}
+              {status.database === 'healthy' ? 'Connected' : 
+               status.database === 'checking' ? 'Checking...' : 'Disconnected'}
             </p>
           </div>
 
@@ -93,11 +131,43 @@ export default function SystemStatus({ onNavigate }) {
           <h2>Recent Activity</h2>
           <p>No errors reported in the last 24 hours</p>
           {status.lastSync !== 'Never' && (
-            <p style={{ fontSize: '14px', color: '#64748b', marginTop: '8px' }}>
-              Last checked: {status.lastSync}
-            </p>
+            <div style={{ marginTop: '12px' }}>
+              <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0' }}>
+                Last checked: {status.lastSync}
+              </p>
+              {status.environment !== 'unknown' && (
+                <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0' }}>
+                  Environment: <strong>{status.environment}</strong>
+                </p>
+              )}
+            </div>
           )}
         </div>
+
+        {/* Development debugging info */}
+        {import.meta.env.DEV && (
+          <div style={{
+            marginTop: '20px',
+            padding: '16px',
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '8px',
+            fontSize: '13px'
+          }}>
+            <strong>Development Debug Info:</strong>
+            <pre style={{ 
+              marginTop: '8px', 
+              fontSize: '12px', 
+              backgroundColor: '#fff',
+              padding: '8px',
+              borderRadius: '4px',
+              overflow: 'auto'
+            }}>
+              API URL: {import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1'}
+              {'\n'}Status: {JSON.stringify(status, null, 2)}
+            </pre>
+          </div>
+        )}
 
         <button onClick={handleBackClick} className="btn-back">
           ← Back to Home
